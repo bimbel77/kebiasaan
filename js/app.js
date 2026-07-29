@@ -1,54 +1,60 @@
 import { db } from './firebase-config.js';
 import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// State Pengguna Aktif
+// State User
 let currentUser = null;
 
-// Tampilkan / Sembunyikan Input Password Berdasarkan Role
-window.toggleLoginFields = function() {
-    const role = document.getElementById('roleSelect').value;
-    const identityLabel = document.getElementById('identityLabel');
-    const passGroup = document.getElementById('passGroup');
+// Event Listener Setelah DOM Siap
+document.addEventListener('DOMContentLoaded', () => {
+    const loginForm = document.getElementById('loginForm');
+    const btnLogout = document.getElementById('btnLogout');
+    const btnToggle = document.getElementById('btnToggleSidebar');
 
-    if (role === 'siswa') {
-        identityLabel.innerText = 'Nama Siswa / NISN:';
-        passGroup.style.display = 'none';
-    } else {
-        identityLabel.innerText = 'Username / NIP:';
-        passGroup.style.display = 'block';
+    if (loginForm) {
+        loginForm.addEventListener('submit', prosesLogin);
     }
-};
+    if (btnLogout) {
+        btnLogout.addEventListener('click', logout);
+    }
+    if (btnToggle) {
+        btnToggle.addEventListener('click', toggleSidebar);
+    }
+});
 
-// Fungsi Login
-window.prosesLogin = function() {
+// Fungsi Proses Login
+function prosesLogin(e) {
+    e.preventDefault();
+
     const role = document.getElementById('roleSelect').value;
     const username = document.getElementById('usernameInput').value.trim();
+    const password = document.getElementById('passwordInput').value.trim();
 
-    if (!username) {
-        alert('Silakan masukkan nama/username terlebih dahulu!');
+    if (!username || !password) {
+        alert('Harap isi Username dan Password!');
         return;
     }
 
+    // Set Data User Aktif
     currentUser = {
         role: role,
         name: username
     };
 
-    // Sembunyikan Modal Login, Tampilkan App
+    // Tampilkan App, Sembunyikan Modal Login
     document.getElementById('loginModal').style.display = 'none';
     document.getElementById('appContainer').style.display = 'flex';
 
-    // Update Banner Profil
+    // Update Banner Sidebar
     document.getElementById('userRoleBadge').innerText = currentUser.role.toUpperCase();
     document.getElementById('userNameDisplay').innerText = currentUser.name;
 
-    // Render Menu & Muat Dashboard
+    // Load Menu & Dashboard
     renderSidebarMenu();
     loadPage('dashboard');
-};
+}
 
 // Fungsi Logout
-window.logout = function() {
+function logout() {
     if (confirm('Apakah Anda yakin ingin keluar?')) {
         currentUser = null;
         document.getElementById('appContainer').style.display = 'none';
@@ -56,19 +62,15 @@ window.logout = function() {
         document.getElementById('usernameInput').value = '';
         document.getElementById('passwordInput').value = '';
     }
-};
+}
 
-// Toggle Sidebar untuk HP / Layar Kecil
-window.toggleSidebar = function() {
+// Toggle Sidebar Mobile
+function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
-    if (sidebar.style.display === 'none' || sidebar.style.display === '') {
-        sidebar.style.display = 'flex';
-    } else {
-        sidebar.style.display = 'none';
-    }
-};
+    sidebar.style.display = (sidebar.style.display === 'none' || sidebar.style.display === '') ? 'flex' : 'none';
+}
 
-// Render Menu Sesuai Role Pengguna
+// Render Menu Sesuai Role
 function renderSidebarMenu() {
     const navMenu = document.getElementById('navMenu');
     navMenu.innerHTML = '';
@@ -115,7 +117,7 @@ function renderSidebarMenu() {
     });
 }
 
-// Router Halaman
+// Router Konten Halaman
 window.loadPage = function(pageId) {
     const body = document.getElementById('contentBody');
     const title = document.getElementById('pageTitle');
@@ -127,11 +129,10 @@ window.loadPage = function(pageId) {
                 <div class="card">
                     <h3>Selamat Datang, ${currentUser.name}!</h3>
                     <p>Status Akses: <strong>${currentUser.role.toUpperCase()}</strong></p>
-                    <p style="margin-top: 10px;">Gunakan menu di sebelah kiri untuk mengelola atau mengisi kebiasaan harian.</p>
+                    <p style="margin-top: 10px;">Silakan pilih menu di sebelah kiri untuk mulai menggunakan aplikasi.</p>
                 </div>`;
             break;
 
-        // --- MENU SISWA ---
         case 'bangun-pagi':
             title.innerText = "Kebiasaan 1: Bangun Pagi";
             body.innerHTML = renderForm('Form Bangun Pagi', `
@@ -163,7 +164,7 @@ window.loadPage = function(pageId) {
             title.innerText = "Kebiasaan 3: Berolahraga";
             body.innerHTML = renderForm('Form Olahraga', `
                 <div class="form-group"><label>Tanggal</label><input type="date" id="tgl" required></div>
-                <div class="form-group"><label>Jenis Olahraga</label><input type="text" id="jenis" placeholder="Contoh: Senam, Bersepeda" required></div>
+                <div class="form-group"><label>Jenis Olahraga</label><input type="text" id="jenis" placeholder="Contoh: Senam, Lari" required></div>
                 <div class="form-group"><label>Jam Mulai</label><input type="time" id="jamMulai" required></div>
                 <div class="form-group"><label>Jam Selesai</label><input type="time" id="jamSelesai" required></div>
             `, 'simpanOlahraga');
@@ -173,8 +174,8 @@ window.loadPage = function(pageId) {
             title.innerText = "Kebiasaan 4: Makan Sehat Bergizi";
             body.innerHTML = renderForm('Form Makan Sehat', `
                 <div class="form-group"><label>Tanggal</label><input type="date" id="tgl" required></div>
-                <div class="form-group"><label>Menu Makan Sehat</label><input type="text" id="menu" placeholder="Contoh: Nasi, Sayur Bening, Telur" required></div>
-                <div class="form-group"><label>Keterangan</label><textarea id="ket" placeholder="Keterangan tambahan..."></textarea></div>
+                <div class="form-group"><label>Menu Makan Sehat</label><input type="text" id="menu" placeholder="Contoh: Nasi, Sayur, Telur" required></div>
+                <div class="form-group"><label>Keterangan</label><textarea id="ket"></textarea></div>
             `, 'simpanMakan');
             break;
 
@@ -182,8 +183,8 @@ window.loadPage = function(pageId) {
             title.innerText = "Kebiasaan 5: Gemar Belajar";
             body.innerHTML = renderForm('Form Belajar Mandiri', `
                 <div class="form-group"><label>Tanggal</label><input type="date" id="tgl" required></div>
-                <div class="form-group"><label>Materi / Bacaan</label><input type="text" id="materi" placeholder="Judul buku / mata pelajaran" required></div>
-                <div class="form-group"><label>Kesimpulan</label><textarea id="kesimpulan" placeholder="Rangkuman singkat apa yang dipelajari..." required></textarea></div>
+                <div class="form-group"><label>Materi / Bacaan</label><input type="text" id="materi" required></div>
+                <div class="form-group"><label>Kesimpulan</label><textarea id="kesimpulan" required></textarea></div>
             `, 'simpanBelajar');
             break;
 
@@ -191,7 +192,7 @@ window.loadPage = function(pageId) {
             title.innerText = "Kebiasaan 6: Bermasyarakat";
             body.innerHTML = renderForm('Form Kegiatan Bermasyarakat', `
                 <div class="form-group"><label>Tanggal</label><input type="date" id="tgl" required></div>
-                <div class="form-group"><label>Jenis Kegiatan</label><input type="text" id="kegiatan" placeholder="Gotong royong, membantu teman, dll" required></div>
+                <div class="form-group"><label>Jenis Kegiatan</label><input type="text" id="kegiatan" required></div>
                 <div class="form-group"><label>Keterangan</label><textarea id="ket"></textarea></div>
             `, 'simpanMasyarakat');
             break;
@@ -201,11 +202,10 @@ window.loadPage = function(pageId) {
             body.innerHTML = renderForm('Form Tidur Cepat', `
                 <div class="form-group"><label>Tanggal</label><input type="date" id="tgl" required></div>
                 <div class="form-group"><label>Jam Tidur</label><input type="time" id="jamTidur" required></div>
-                <div class="form-group"><label>Keterangan</label><input type="text" id="ket" placeholder="Keterangan (misal: tidur tepat jam 21.00)"></div>
+                <div class="form-group"><label>Keterangan</label><input type="text" id="ket"></div>
             `, 'simpanTidur');
             break;
 
-        // --- MENU GURU & ADMIN ---
         case 'cetak-rekap':
             title.innerText = "Cetak Rekap Kebiasaan Siswa";
             body.innerHTML = `
@@ -220,7 +220,7 @@ window.loadPage = function(pageId) {
             body.innerHTML = `
                 <div class="card">
                     <h3>Fitur ${pageId}</h3>
-                    <p>Halaman ini siap dihubungkan dengan data Firebase.</p>
+                    <p>Halaman aktif dan siap terhubung ke database Firebase.</p>
                 </div>`;
     }
 };
@@ -237,45 +237,35 @@ function renderForm(title, fieldsHtml, submitFunctionName) {
         </div>`;
 }
 
-// --- FUNGSI SIMPAN FIREBASE ---
+// Simpan Ke Firebase
 window.simpanBangunPagi = async function() {
-    const tgl = document.getElementById('tgl').value;
-    const jam = document.getElementById('jamBangun').value;
-
     try {
         await addDoc(collection(db, "kebiasaan_bangun_pagi"), {
             namaSiswa: currentUser.name,
-            tanggal: tgl,
-            jamBangun: jam,
+            tanggal: document.getElementById('tgl').value,
+            jamBangun: document.getElementById('jamBangun').value,
             createdAt: new Date()
         });
         alert("Berhasil! Data Bangun Pagi tersimpan.");
-    } catch (e) {
-        console.error("Error: ", e);
-        alert("Gagal menyimpan ke Firebase.");
-    }
+    } catch (e) { alert("Gagal menyimpan ke Firebase."); }
 };
 
 window.simpanIbadah = async function() {
-    const data = {
-        namaSiswa: currentUser.name,
-        tanggal: document.getElementById('tgl').value,
-        subuh: document.getElementById('subuh').checked,
-        dzuhur: document.getElementById('dzuhur').checked,
-        ashar: document.getElementById('ashar').checked,
-        maghrib: document.getElementById('maghrib').checked,
-        isya: document.getElementById('isya').checked,
-        duha: document.getElementById('duha').checked,
-        tahajjud: document.getElementById('tahajjud').checked,
-        createdAt: new Date()
-    };
-
     try {
-        await addDoc(collection(db, "kebiasaan_ibadah"), data);
+        await addDoc(collection(db, "kebiasaan_ibadah"), {
+            namaSiswa: currentUser.name,
+            tanggal: document.getElementById('tgl').value,
+            subuh: document.getElementById('subuh').checked,
+            dzuhur: document.getElementById('dzuhur').checked,
+            ashar: document.getElementById('ashar').checked,
+            maghrib: document.getElementById('maghrib').checked,
+            isya: document.getElementById('isya').checked,
+            duha: document.getElementById('duha').checked,
+            tahajjud: document.getElementById('tahajjud').checked,
+            createdAt: new Date()
+        });
         alert("Berhasil! Data Ibadah tersimpan.");
-    } catch (e) {
-        alert("Gagal menyimpan ke Firebase.");
-    }
+    } catch (e) { alert("Gagal menyimpan ke Firebase."); }
 };
 
 window.simpanOlahraga = async function() {
