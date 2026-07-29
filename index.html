@@ -20,7 +20,7 @@
     </div>
   </nav>
 
-  <div class="container">
+  <div class="container mb-5">
 
     <!-- 1. HALAMAN LOGIN -->
     <div id="sectionLogin" class="row justify-content-center py-5">
@@ -49,6 +49,7 @@
     <!-- 2. DASHBOARD ADMIN -->
     <div id="sectionAdmin" class="d-none">
       <div class="row">
+        <!-- Pengaturan Sekolah -->
         <div class="col-md-4 mb-4">
           <div class="card shadow-sm">
             <div class="card-header bg-white fw-bold">Pengaturan Sekolah</div>
@@ -71,11 +72,18 @@
             </div>
           </div>
         </div>
+
+        <!-- Kelola Guru & Siswa -->
         <div class="col-md-8">
-          <div class="card shadow-sm">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <!-- Tabel Guru -->
+          <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
               <span class="fw-bold">Daftar Guru / Wali Kelas</span>
-              <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalTambahGuru">+ Tambah Guru</button>
+              <div class="d-flex gap-1">
+                <button class="btn btn-outline-secondary btn-sm" onclick="downloadFormatGuru()">Format Guru CSV</button>
+                <button class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalImportGuru">Import Guru</button>
+                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalTambahGuru">+ Guru</button>
+              </div>
             </div>
             <div class="card-body">
               <table class="table table-bordered align-middle">
@@ -86,6 +94,26 @@
               </table>
             </div>
           </div>
+
+          <!-- Tabel Siswa (Admin) -->
+          <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <span class="fw-bold">Daftar Semua Siswa</span>
+              <div class="d-flex gap-1">
+                <button class="btn btn-outline-secondary btn-sm" onclick="downloadFormatSiswa()">Format Siswa CSV</button>
+                <button class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalImportSiswa">Import Siswa</button>
+              </div>
+            </div>
+            <div class="card-body">
+              <table class="table table-bordered align-middle">
+                <thead>
+                  <tr><th>No</th><th>NISN</th><th>Nama Siswa</th><th>Kelas</th></tr>
+                </thead>
+                <tbody id="tabelSiswaAdmin"></tbody>
+              </table>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
@@ -95,7 +123,9 @@
       <div class="card shadow-sm">
         <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
           <h5 class="mb-0 fw-bold" id="titleKelasGuru">Pemantauan Kelas</h5>
-          <div class="d-flex gap-2">
+          <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-outline-secondary btn-sm" onclick="downloadFormatSiswa()">Download Format CSV</button>
+            <button class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalImportSiswa">Import Siswa CSV</button>
             <button class="btn btn-warning btn-sm" onclick="cetakKartuLogin()">Cetak Kartu Login</button>
             <button class="btn btn-info btn-sm text-white" onclick="cetakRekapHarian()">Cetak Rekap Harian</button>
             <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalTambahSiswa">+ Tambah Siswa</button>
@@ -114,14 +144,13 @@
 
     <!-- 4. DASHBOARD SISWA -->
     <div id="sectionSiswa" class="d-none">
-      <div class="alert alert-primary text-center fw-bold mb-4" id="tglHariIni"></div>
+      <div class="alert alert-primary text-center fw-bold mb-4">
+        Form Jurnal 7 Kebiasaan Anak Indonesia Hebat
+      </div>
       <div class="row g-3" id="container7Kebiasaan"></div>
     </div>
 
   </div>
-
-  <!-- AREA PRINT (Hidden dari layar utama) -->
-  <div id="printArea" class="d-none"></div>
 
   <!-- MODAL TAMBAH GURU -->
   <div class="modal fade" id="modalTambahGuru" tabindex="-1">
@@ -139,6 +168,20 @@
     </div>
   </div>
 
+  <!-- MODAL IMPORT GURU -->
+  <div class="modal fade" id="modalImportGuru" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Import Data Guru (CSV)</h5></div>
+        <div class="modal-body">
+          <input type="file" id="fileCsvGuru" accept=".csv" class="form-control mb-2">
+          <small class="text-muted">Format header: <code>nama,kelas,username,password</code></small>
+        </div>
+        <div class="modal-footer"><button type="button" onclick="prosesImportGuru()" class="btn btn-success">Upload & Import</button></div>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL TAMBAH SISWA -->
   <div class="modal fade" id="modalTambahSiswa" tabindex="-1">
     <div class="modal-dialog">
@@ -147,9 +190,27 @@
         <div class="modal-body">
           <div class="mb-2"><label class="form-label">NISN (Sekaligus Username & Password)</label><input type="text" id="siswaNisn" class="form-control" required></div>
           <div class="mb-2"><label class="form-label">Nama Lengkap Siswa</label><input type="text" id="siswaNama" class="form-control" required></div>
+          <div class="mb-2" id="divInputKelasSiswa" style="display:none;">
+            <label class="form-label">Kelas</label>
+            <input type="text" id="siswaKelas" class="form-control" placeholder="Contoh: 1A">
+          </div>
         </div>
         <div class="modal-footer"><button type="submit" class="btn btn-success">Simpan</button></div>
       </form>
+    </div>
+  </div>
+
+  <!-- MODAL IMPORT SISWA -->
+  <div class="modal fade" id="modalImportSiswa" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Import Data Siswa (CSV)</h5></div>
+        <div class="modal-body">
+          <input type="file" id="fileCsvSiswa" accept=".csv" class="form-control mb-2">
+          <small class="text-muted">Format header: <code>nisn,nama,kelas</code></small>
+        </div>
+        <div class="modal-footer"><button type="button" onclick="prosesImportSiswa()" class="btn btn-success">Upload & Import</button></div>
+      </div>
     </div>
   </div>
 
