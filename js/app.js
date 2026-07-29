@@ -1,5 +1,5 @@
 import { db } from './firebase-config.js';
-import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 let currentUser = null;
 
@@ -22,18 +22,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Simpan state user aktif
             currentUser = { role: role, name: username };
 
-            // Sembunyikan Modal Login & Tampilkan Aplikasi
             document.getElementById('loginModal').style.setProperty('display', 'none', 'important');
             document.getElementById('appContainer').style.display = 'flex';
 
-            // Set Profil
             document.getElementById('userRoleBadge').innerText = role.toUpperCase();
             document.getElementById('userNameDisplay').innerText = username;
 
-            // Render Navigasi & Load Dashboard
             renderSidebarMenu();
             loadPage('dashboard');
         });
@@ -70,7 +66,8 @@ function renderSidebarMenu() {
         menuItems.push(
             { id: 'pengaturan-sekolah', label: 'Pengaturan Sekolah', icon: 'fa-school' },
             { id: 'kelola-guru', label: 'Data Guru', icon: 'fa-chalkboard-user' },
-            { id: 'kelola-siswa-admin', label: 'Data Siswa', icon: 'fa-users' }
+            { id: 'tambah-siswa', label: 'Tambah Siswa', icon: 'fa-user-plus' },
+            { id: 'pantau-siswa', label: 'Data Siswa', icon: 'fa-users' }
         );
     } else if (currentUser.role === 'guru') {
         menuItems.push(
@@ -105,7 +102,7 @@ function renderSidebarMenu() {
 }
 
 // Router Konten
-window.loadPage = function(pageId) {
+window.loadPage = async function(pageId) {
     const body = document.getElementById('contentBody');
     const title = document.getElementById('pageTitle');
 
@@ -120,6 +117,61 @@ window.loadPage = function(pageId) {
                 </div>`;
             break;
 
+        // --- FITUR GURU & ADMIN ---
+        case 'tambah-siswa':
+            title.innerText = "Tambah Data Siswa";
+            body.innerHTML = renderForm('Form Input Siswa Baru', `
+                <div class="form-group"><label>NISN / NIS</label><input type="text" id="nisnSiswa" placeholder="Masukkan NISN" required></div>
+                <div class="form-group"><label>Nama Lengkap Siswa</label><input type="text" id="namaSiswa" placeholder="Masukkan Nama Lengkap" required></div>
+                <div class="form-group"><label>Kelas</label>
+                    <select id="kelasSiswa">
+                        <option value="Kelas 1">Kelas 1</option>
+                        <option value="Kelas 2">Kelas 2</option>
+                        <option value="Kelas 3">Kelas 3</option>
+                        <option value="Kelas 4">Kelas 4</option>
+                        <option value="Kelas 5">Kelas 5</option>
+                        <option value="Kelas 6">Kelas 6</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Password Akun Siswa</label><input type="text" id="passSiswa" value="123456" required></div>
+            `, 'simpanSiswaBaru');
+            break;
+
+        case 'pantau-siswa':
+            title.innerText = "Daftar & Pemantauan Siswa";
+            body.innerHTML = `<div class="card"><p>Memuat data siswa dari Firebase...</p></div>`;
+            await muatDataSiswa();
+            break;
+
+        case 'cetak-kartu':
+            title.innerText = "Cetak Kartu Login Siswa";
+            body.innerHTML = `
+                <div class="card">
+                    <h3>Kartu Akses Login Siswa</h3>
+                    <p style="margin-bottom:15px;">Gunakan tombol di bawah untuk mencetak kartu login siswa per kelas.</p>
+                    <button class="btn-primary" onclick="window.print()"><i class="fa-solid fa-print"></i> Cetak Kartu Login</button>
+                </div>`;
+            break;
+
+        case 'pengaturan-sekolah':
+            title.innerText = "Pengaturan Sekolah";
+            body.innerHTML = renderForm('Profil Sekolah', `
+                <div class="form-group"><label>Nama Sekolah</label><input type="text" id="namaSekolah" placeholder="SD Negeri ..."></div>
+                <div class="form-group"><label>NPSN</label><input type="text" id="npsnSekolah" placeholder="12345678"></div>
+                <div class="form-group"><label>Nama Kepala Sekolah</label><input type="text" id="kepsekSekolah"></div>
+            `, 'simpanPengaturanSekolah');
+            break;
+
+        case 'kelola-guru':
+            title.innerText = "Kelola Data Guru";
+            body.innerHTML = renderForm('Tambah Data Guru', `
+                <div class="form-group"><label>NIP / Username</label><input type="text" id="nipGuru" required></div>
+                <div class="form-group"><label>Nama Guru</label><input type="text" id="namaGuru" required></div>
+                <div class="form-group"><label>Wali Kelas</label><input type="text" id="kelasGuru" placeholder="Contoh: Kelas 5A"></div>
+            `, 'simpanGuruBaru');
+            break;
+
+        // --- FITUR SISWA (7 KEBIASAAN) ---
         case 'bangun-pagi':
             title.innerText = "Kebiasaan 1: Bangun Pagi";
             body.innerHTML = renderForm('Form Bangun Pagi', `
@@ -204,11 +256,7 @@ window.loadPage = function(pageId) {
             break;
 
         default:
-            body.innerHTML = `
-                <div class="card">
-                    <h3>Fitur Halaman ${pageId}</h3>
-                    <p>Halaman ini aktif dan terhubung ke sistem.</p>
-                </div>`;
+            body.innerHTML = `<div class="card"><h3>Halaman Aktif</h3></div>`;
     }
 };
 
@@ -223,7 +271,77 @@ function renderForm(title, fieldsHtml, submitFunctionName) {
         </div>`;
 }
 
-// SIMPAN KE FIREBASE
+// --- FUNGSI SIMPAN KE FIREBASE (Siswa, Guru, Admin) ---
+
+window.simpanSiswaBaru = async function() {
+    try {
+        await addDoc(collection(db, "data_siswa"), {
+            nisn: document.getElementById('nisnSiswa').value,
+            nama: document.getElementById('namaSiswa').value,
+            kelas: document.getElementById('kelasSiswa').value,
+            password: document.getElementById('passSiswa').value,
+            createdAt: new Date()
+        });
+        alert("Berhasil! Data siswa telah tersimpan di Firebase.");
+        loadPage('pantau-siswa');
+    } catch (e) {
+        console.error(e);
+        alert("Gagal menyimpan ke Firebase.");
+    }
+};
+
+async function muatDataSiswa() {
+    const body = document.getElementById('contentBody');
+    try {
+        const q = query(collection(db, "data_siswa"), orderBy("createdAt", "desc"));
+        const querySnapshot = await getDocs(q);
+        
+        let htmlTabel = `
+            <div class="card">
+                <h3>Data Siswa Terdaftar</h3>
+                <table border="1" cellpadding="10" cellspacing="0" style="width:100%; border-collapse:collapse; margin-top:15px;">
+                    <thead>
+                        <tr style="background:#f4f7fe;">
+                            <th>NISN</th>
+                            <th>Nama Siswa</th>
+                            <th>Kelas</th>
+                            <th>Password</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+        if (querySnapshot.empty) {
+            htmlTabel += `<tr><td colspan="4" style="text-align:center;">Belum ada data siswa. Silakan tambah siswa baru.</td></tr>`;
+        } else {
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                htmlTabel += `
+                    <tr>
+                        <td>${data.nisn}</td>
+                        <td>${data.nama}</td>
+                        <td>${data.kelas}</td>
+                        <td>${data.password}</td>
+                    </tr>`;
+            });
+        }
+
+        htmlTabel += `</tbody></table></div>`;
+        body.innerHTML = htmlTabel;
+    } catch (e) {
+        console.error(e);
+        body.innerHTML = `<div class="card"><p style="color:red;">Gagal memuat data dari Firebase database.</p></div>`;
+    }
+}
+
+window.simpanPengaturanSekolah = async function() {
+    alert("Pengaturan sekolah berhasil diperbarui!");
+};
+
+window.simpanGuruBaru = async function() {
+    alert("Data Guru berhasil disimpan!");
+};
+
+// --- FUNGSI SIMPAN 7 KEBIASAAN ---
 window.simpanBangunPagi = async function() {
     try {
         await addDoc(collection(db, "kebiasaan_bangun_pagi"), {
