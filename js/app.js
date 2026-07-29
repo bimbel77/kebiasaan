@@ -1,25 +1,74 @@
 import { db } from './firebase-config.js';
-import { collection, addDoc, getDocs, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// Session State Sederhana (Dapat disesuaikan dengan Auth)
-let currentUser = {
-    role: 'siswa', // Opsi: 'admin', 'guru', 'siswa'
-    name: 'Siswa Contoh',
-    kelas: '5A'
+// State Pengguna Aktif
+let currentUser = null;
+
+// Tampilkan / Sembunyikan Input Password Berdasarkan Role
+window.toggleLoginFields = function() {
+    const role = document.getElementById('roleSelect').value;
+    const identityLabel = document.getElementById('identityLabel');
+    const passGroup = document.getElementById('passGroup');
+
+    if (role === 'siswa') {
+        identityLabel.innerText = 'Nama Siswa / NISN:';
+        passGroup.style.display = 'none';
+    } else {
+        identityLabel.innerText = 'Username / NIP:';
+        passGroup.style.display = 'block';
+    }
 };
 
-document.addEventListener("DOMContentLoaded", () => {
-    initApp();
-});
+// Fungsi Login
+window.prosesLogin = function() {
+    const role = document.getElementById('roleSelect').value;
+    const username = document.getElementById('usernameInput').value.trim();
 
-function initApp() {
-    document.getElementById('userRoleBadge').innerText = currentUser.role;
+    if (!username) {
+        alert('Silakan masukkan nama/username terlebih dahulu!');
+        return;
+    }
+
+    currentUser = {
+        role: role,
+        name: username
+    };
+
+    // Sembunyikan Modal Login, Tampilkan App
+    document.getElementById('loginModal').style.display = 'none';
+    document.getElementById('appContainer').style.display = 'flex';
+
+    // Update Banner Profil
+    document.getElementById('userRoleBadge').innerText = currentUser.role.toUpperCase();
     document.getElementById('userNameDisplay').innerText = currentUser.name;
+
+    // Render Menu & Muat Dashboard
     renderSidebarMenu();
     loadPage('dashboard');
-}
+};
 
-// 1. Sidebar Navigasi Berdasarkan Role
+// Fungsi Logout
+window.logout = function() {
+    if (confirm('Apakah Anda yakin ingin keluar?')) {
+        currentUser = null;
+        document.getElementById('appContainer').style.display = 'none';
+        document.getElementById('loginModal').style.display = 'flex';
+        document.getElementById('usernameInput').value = '';
+        document.getElementById('passwordInput').value = '';
+    }
+};
+
+// Toggle Sidebar untuk HP / Layar Kecil
+window.toggleSidebar = function() {
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar.style.display === 'none' || sidebar.style.display === '') {
+        sidebar.style.display = 'flex';
+    } else {
+        sidebar.style.display = 'none';
+    }
+};
+
+// Render Menu Sesuai Role Pengguna
 function renderSidebarMenu() {
     const navMenu = document.getElementById('navMenu');
     navMenu.innerHTML = '';
@@ -53,10 +102,10 @@ function renderSidebarMenu() {
         );
     }
 
-    menuItems.forEach(item => {
+    menuItems.forEach((item, index) => {
         const a = document.createElement('a');
-        a.className = 'nav-item';
-        a.innerHTML = `<i class="fa-solid ${item.icon}"></i> ${item.label}`;
+        a.className = `nav-item ${index === 0 ? 'active' : ''}`;
+        a.innerHTML = `<i class="fa-solid ${item.icon}"></i> <span>${item.label}</span>`;
         a.onclick = () => {
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             a.classList.add('active');
@@ -66,7 +115,7 @@ function renderSidebarMenu() {
     });
 }
 
-// 2. Router Halaman Konten
+// Router Halaman
 window.loadPage = function(pageId) {
     const body = document.getElementById('contentBody');
     const title = document.getElementById('pageTitle');
@@ -77,33 +126,26 @@ window.loadPage = function(pageId) {
             body.innerHTML = `
                 <div class="card">
                     <h3>Selamat Datang, ${currentUser.name}!</h3>
-                    <p>Sistem Pemantauan 7 Kebiasaan Anak Indonesia Hebat.</p>
+                    <p>Status Akses: <strong>${currentUser.role.toUpperCase()}</strong></p>
+                    <p style="margin-top: 10px;">Gunakan menu di sebelah kiri untuk mengelola atau mengisi kebiasaan harian.</p>
                 </div>`;
             break;
 
-        // --- MENU SISWA (7 KEBIASAAN) ---
+        // --- MENU SISWA ---
         case 'bangun-pagi':
             title.innerText = "Kebiasaan 1: Bangun Pagi";
             body.innerHTML = renderForm('Form Bangun Pagi', `
-                <div class="form-group">
-                    <label>Tanggal</label>
-                    <input type="date" id="tgl" required>
-                </div>
-                <div class="form-group">
-                    <label>Jam Bangun</label>
-                    <input type="time" id="jamBangun" required>
-                </div>`, 'simpanBangunPagi');
+                <div class="form-group"><label>Tanggal</label><input type="date" id="tgl" required></div>
+                <div class="form-group"><label>Jam Bangun</label><input type="time" id="jamBangun" required></div>
+            `, 'simpanBangunPagi');
             break;
 
         case 'beribadah':
             title.innerText = "Kebiasaan 2: Beribadah";
             body.innerHTML = renderForm('Form Ibadah Harian', `
+                <div class="form-group"><label>Tanggal</label><input type="date" id="tgl" required></div>
                 <div class="form-group">
-                    <label>Tanggal</label>
-                    <input type="date" id="tgl" required>
-                </div>
-                <div class="form-group">
-                    <label>Ceklis Sholat / Ibadah</label>
+                    <label>Ceklis Sholat / Ibadah Harian:</label>
                     <div class="checkbox-group">
                         <label class="checkbox-item"><input type="checkbox" id="subuh"> Subuh</label>
                         <label class="checkbox-item"><input type="checkbox" id="dzuhur"> Dzuhur</label>
@@ -113,77 +155,89 @@ window.loadPage = function(pageId) {
                         <label class="checkbox-item"><input type="checkbox" id="duha"> Duha</label>
                         <label class="checkbox-item"><input type="checkbox" id="tahajjud"> Tahajjud</label>
                     </div>
-                </div>`, 'simpanIbadah');
+                </div>
+            `, 'simpanIbadah');
             break;
 
         case 'berolahraga':
             title.innerText = "Kebiasaan 3: Berolahraga";
             body.innerHTML = renderForm('Form Olahraga', `
                 <div class="form-group"><label>Tanggal</label><input type="date" id="tgl" required></div>
-                <div class="form-group"><label>Jenis Olahraga</label><input type="text" id="jenisOlahraga" placeholder="Contoh: Lari, Senam"></div>
-                <div class="form-group"><label>Waktu Mulai</label><input type="time" id="jamMulai"></div>
-                <div class="form-group"><label>Waktu Selesai</label><input type="time" id="jamSelesai"></div>`, 'simpanOlahraga');
+                <div class="form-group"><label>Jenis Olahraga</label><input type="text" id="jenis" placeholder="Contoh: Senam, Bersepeda" required></div>
+                <div class="form-group"><label>Jam Mulai</label><input type="time" id="jamMulai" required></div>
+                <div class="form-group"><label>Jam Selesai</label><input type="time" id="jamSelesai" required></div>
+            `, 'simpanOlahraga');
             break;
 
         case 'makan-sehat':
             title.innerText = "Kebiasaan 4: Makan Sehat Bergizi";
             body.innerHTML = renderForm('Form Makan Sehat', `
                 <div class="form-group"><label>Tanggal</label><input type="date" id="tgl" required></div>
-                <div class="form-group"><label>Menu Makan Sehat</label><input type="text" id="menuMakan" placeholder="Nasi, Sayur Bayam, Telur"></div>
-                <div class="form-group"><label>Keterangan</label><textarea id="ket"></textarea></div>`, 'simpanMakan');
+                <div class="form-group"><label>Menu Makan Sehat</label><input type="text" id="menu" placeholder="Contoh: Nasi, Sayur Bening, Telur" required></div>
+                <div class="form-group"><label>Keterangan</label><textarea id="ket" placeholder="Keterangan tambahan..."></textarea></div>
+            `, 'simpanMakan');
             break;
 
         case 'gemar-belajar':
             title.innerText = "Kebiasaan 5: Gemar Belajar";
             body.innerHTML = renderForm('Form Belajar Mandiri', `
                 <div class="form-group"><label>Tanggal</label><input type="date" id="tgl" required></div>
-                <div class="form-group"><label>Materi / Bacaan</label><input type="text" id="materi"></div>
-                <div class="form-group"><label>Rangkuman / Kesimpulan</label><textarea id="kesimpulan"></textarea></div>`, 'simpanBelajar');
+                <div class="form-group"><label>Materi / Bacaan</label><input type="text" id="materi" placeholder="Judul buku / mata pelajaran" required></div>
+                <div class="form-group"><label>Kesimpulan</label><textarea id="kesimpulan" placeholder="Rangkuman singkat apa yang dipelajari..." required></textarea></div>
+            `, 'simpanBelajar');
             break;
 
         case 'bermasyarakat':
             title.innerText = "Kebiasaan 6: Bermasyarakat";
             body.innerHTML = renderForm('Form Kegiatan Bermasyarakat', `
                 <div class="form-group"><label>Tanggal</label><input type="date" id="tgl" required></div>
-                <div class="form-group"><label>Jenis Kegiatan</label><input type="text" id="kegiatan" placeholder="Gotong royong, membantu tetangga"></div>
-                <div class="form-group"><label>Keterangan</label><textarea id="ket"></textarea></div>`, 'simpanMasyarakat');
+                <div class="form-group"><label>Jenis Kegiatan</label><input type="text" id="kegiatan" placeholder="Gotong royong, membantu teman, dll" required></div>
+                <div class="form-group"><label>Keterangan</label><textarea id="ket"></textarea></div>
+            `, 'simpanMasyarakat');
             break;
 
         case 'tidur-cepat':
             title.innerText = "Kebiasaan 7: Tidur Cepat";
-            body.innerHTML = renderForm('Form Istirahat Malam', `
+            body.innerHTML = renderForm('Form Tidur Cepat', `
                 <div class="form-group"><label>Tanggal</label><input type="date" id="tgl" required></div>
-                <div class="form-group"><label>Jam Tidur</label><input type="time" id="jamTidur"></div>
-                <div class="form-group"><label>Keterangan</label><input type="text" id="ket"></div>`, 'simpanTidur');
+                <div class="form-group"><label>Jam Tidur</label><input type="time" id="jamTidur" required></div>
+                <div class="form-group"><label>Keterangan</label><input type="text" id="ket" placeholder="Keterangan (misal: tidur tepat jam 21.00)"></div>
+            `, 'simpanTidur');
             break;
 
-        // --- MENU GURU ---
+        // --- MENU GURU & ADMIN ---
         case 'cetak-rekap':
             title.innerText = "Cetak Rekap Kebiasaan Siswa";
             body.innerHTML = `
                 <div class="card">
-                    <button class="btn-primary" onclick="window.print()"><i class="fa-solid fa-print"></i> Cetak Laporan</button>
+                    <h3>Rekap Isian Kebiasaan Siswa</h3>
+                    <p style="margin-bottom: 15px;">Klik tombol di bawah ini untuk mencetak rekap data.</p>
+                    <button class="btn-primary" onclick="window.print()"><i class="fa-solid fa-print"></i> Cetak Rekap Sekarang</button>
                 </div>`;
             break;
 
         default:
-            body.innerHTML = `<div class="card"><h3>Halaman sedang dikembangkan</h3></div>`;
+            body.innerHTML = `
+                <div class="card">
+                    <h3>Fitur ${pageId}</h3>
+                    <p>Halaman ini siap dihubungkan dengan data Firebase.</p>
+                </div>`;
     }
-}
+};
 
-// Template Helper Form
+// Helper Render Form
 function renderForm(title, fieldsHtml, submitFunctionName) {
     return `
         <div class="card">
             <h3>${title}</h3>
-            <form onsubmit="event.preventDefault(); ${submitFunctionName}();" style="margin-top:15px;">
+            <form onsubmit="event.preventDefault(); window.${submitFunctionName}();" style="margin-top: 15px;">
                 ${fieldsHtml}
-                <button type="submit" class="btn-primary">Simpan Data</button>
+                <button type="submit" class="btn-primary" style="margin-top: 10px;">Simpan Data</button>
             </form>
         </div>`;
 }
 
-// 3. Simpan Data Ke Firestore
+// --- FUNGSI SIMPAN FIREBASE ---
 window.simpanBangunPagi = async function() {
     const tgl = document.getElementById('tgl').value;
     const jam = document.getElementById('jamBangun').value;
@@ -195,14 +249,97 @@ window.simpanBangunPagi = async function() {
             jamBangun: jam,
             createdAt: new Date()
         });
-        alert("Data Bangun Pagi Berhasil Disimpan!");
+        alert("Berhasil! Data Bangun Pagi tersimpan.");
     } catch (e) {
         console.error("Error: ", e);
-        alert("Gagal menyimpan data.");
+        alert("Gagal menyimpan ke Firebase.");
     }
 };
 
-window.toggleSidebar = function() {
-    const sidebar = document.getElementById('sidebar');
-    sidebar.style.display = sidebar.style.display === 'none' ? 'flex' : 'none';
+window.simpanIbadah = async function() {
+    const data = {
+        namaSiswa: currentUser.name,
+        tanggal: document.getElementById('tgl').value,
+        subuh: document.getElementById('subuh').checked,
+        dzuhur: document.getElementById('dzuhur').checked,
+        ashar: document.getElementById('ashar').checked,
+        maghrib: document.getElementById('maghrib').checked,
+        isya: document.getElementById('isya').checked,
+        duha: document.getElementById('duha').checked,
+        tahajjud: document.getElementById('tahajjud').checked,
+        createdAt: new Date()
+    };
+
+    try {
+        await addDoc(collection(db, "kebiasaan_ibadah"), data);
+        alert("Berhasil! Data Ibadah tersimpan.");
+    } catch (e) {
+        alert("Gagal menyimpan ke Firebase.");
+    }
+};
+
+window.simpanOlahraga = async function() {
+    try {
+        await addDoc(collection(db, "kebiasaan_olahraga"), {
+            namaSiswa: currentUser.name,
+            tanggal: document.getElementById('tgl').value,
+            jenis: document.getElementById('jenis').value,
+            jamMulai: document.getElementById('jamMulai').value,
+            jamSelesai: document.getElementById('jamSelesai').value,
+            createdAt: new Date()
+        });
+        alert("Berhasil! Data Olahraga tersimpan.");
+    } catch (e) { alert("Gagal menyimpan."); }
+};
+
+window.simpanMakan = async function() {
+    try {
+        await addDoc(collection(db, "kebiasaan_makan"), {
+            namaSiswa: currentUser.name,
+            tanggal: document.getElementById('tgl').value,
+            menu: document.getElementById('menu').value,
+            keterangan: document.getElementById('ket').value,
+            createdAt: new Date()
+        });
+        alert("Berhasil! Data Makan Sehat tersimpan.");
+    } catch (e) { alert("Gagal menyimpan."); }
+};
+
+window.simpanBelajar = async function() {
+    try {
+        await addDoc(collection(db, "kebiasaan_belajar"), {
+            namaSiswa: currentUser.name,
+            tanggal: document.getElementById('tgl').value,
+            materi: document.getElementById('materi').value,
+            kesimpulan: document.getElementById('kesimpulan').value,
+            createdAt: new Date()
+        });
+        alert("Berhasil! Data Gemar Belajar tersimpan.");
+    } catch (e) { alert("Gagal menyimpan."); }
+};
+
+window.simpanMasyarakat = async function() {
+    try {
+        await addDoc(collection(db, "kebiasaan_masyarakat"), {
+            namaSiswa: currentUser.name,
+            tanggal: document.getElementById('tgl').value,
+            kegiatan: document.getElementById('kegiatan').value,
+            keterangan: document.getElementById('ket').value,
+            createdAt: new Date()
+        });
+        alert("Berhasil! Data Bermasyarakat tersimpan.");
+    } catch (e) { alert("Gagal menyimpan."); }
+};
+
+window.simpanTidur = async function() {
+    try {
+        await addDoc(collection(db, "kebiasaan_tidur"), {
+            namaSiswa: currentUser.name,
+            tanggal: document.getElementById('tgl').value,
+            jamTidur: document.getElementById('jamTidur').value,
+            keterangan: document.getElementById('ket').value,
+            createdAt: new Date()
+        });
+        alert("Berhasil! Data Tidur Cepat tersimpan.");
+    } catch (e) { alert("Gagal menyimpan."); }
 };
