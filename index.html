@@ -1,220 +1,127 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>7 Kebiasaan Anak Indonesia Hebat</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-</head>
-<body class="bg-light">
-
-  <!-- NAVBAR -->
-  <nav id="navbar" class="navbar navbar-dark bg-primary mb-4 d-none">
-    <div class="container">
-      <span class="navbar-brand mb-0 h1" id="navBrand">7 Kebiasaan Anak Indonesia Hebat</span>
-      <div class="d-flex align-items-center">
-        <span class="text-white me-3" id="userInfo"></span>
-        <button class="btn btn-outline-light btn-sm" id="btnLogout">Keluar</button>
-      </div>
+<!-- SECTION SISWA (GAYA DAPODIK) -->
+<div id="sectionSiswa" class="d-none">
+  <!-- Top Header Bar -->
+  <div class="d-flex justify-content-between align-items-center bg-primary text-white px-3 py-2 shadow-sm">
+    <div class="d-flex align-items-center gap-2">
+      <i class="bi bi-list fs-4"></i>
+      <span class="fw-bold fs-6">JURNAL 7 KEBIASAAN ANAK INDONESIA HEBAT</span>
     </div>
-  </nav>
-
-  <div class="container mb-5">
-
-    <!-- 1. HALAMAN LOGIN -->
-    <div id="sectionLogin" class="row justify-content-center py-5">
-      <div class="col-md-4">
-        <div class="card shadow-sm border-0">
-          <div class="card-body p-4">
-            <h4 class="text-center text-primary fw-bold mb-3">7 Kebiasaan Anak Indonesia Hebat</h4>
-            <p class="text-center text-muted small mb-4">Masuk menggunakan Akun / NISN</p>
-            <div id="loginAlert" class="alert alert-danger d-none p-2 small"></div>
-            <form id="formLogin">
-              <div class="mb-3">
-                <label class="form-label">Username / NISN</label>
-                <input type="text" id="loginUsername" class="form-control" required placeholder="Contoh: admin / nisn">
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Password</label>
-                <input type="password" id="loginPassword" class="form-control" required>
-              </div>
-              <button type="submit" class="btn btn-primary w-100">Masuk</button>
-            </form>
-          </div>
-        </div>
-      </div>
+    <div class="small">
+      <span id="headerSiswaNama" class="fw-semibold">Siswa</span>
+      <button id="btnLogout" class="btn btn-sm btn-outline-light ms-3">Keluar</button>
     </div>
+  </div>
 
-    <!-- 2. DASHBOARD ADMIN -->
-    <div id="sectionAdmin" class="d-none">
-      <div class="row">
-        <!-- Pengaturan Sekolah -->
-        <div class="col-md-4 mb-4">
-          <div class="card shadow-sm">
-            <div class="card-header bg-white fw-bold">Pengaturan Sekolah</div>
-            <div class="card-body">
-              <form id="formSekolah">
-                <div class="mb-2">
-                  <label class="form-label small">Nama Sekolah</label>
-                  <input type="text" id="namaSekolah" class="form-control" required>
-                </div>
-                <div class="mb-2">
-                  <label class="form-label small">Alamat</label>
-                  <textarea id="alamatSekolah" class="form-control" required></textarea>
-                </div>
-                <div class="mb-3">
-                  <label class="form-label small">Kepala Sekolah</label>
-                  <input type="text" id="kepalaSekolah" class="form-control" required>
-                </div>
-                <button type="submit" class="btn btn-success btn-sm w-100">Simpan Pengaturan</button>
-              </form>
+  <div class="container-fluid p-0">
+    <div class="row g-0" style="min-height: calc(100vh - 48px);">
+      
+      <!-- Sidebar Kiri (Gaya Dapodik) -->
+      <div class="col-md-3 col-lg-2 bg-dark text-white p-3 d-flex flex-column justify-content-between">
+        <div>
+          <!-- Profil Widget Kiri -->
+          <div class="text-center pb-3 mb-3 border-bottom border-secondary">
+            <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 60px; height: 60px;">
+              <i class="bi bi-person-fill fs-1 text-white"></i>
             </div>
+            <h6 id="sidebarSiswaNama" class="mb-0 fw-bold text-uppercase">Nama Siswa</h6>
+            <small class="text-warning d-block">Siswa Aktif</small>
+            <small id="sidebarSiswaKelas" class="text-muted">Kelas -</small>
           </div>
+
+          <!-- Menu Sidebar -->
+          <ul class="nav nav-pills flex-column gap-1">
+            <li class="nav-item">
+              <a href="#" class="nav-link active bg-primary text-white d-flex align-items-center gap-2">
+                <i class="bi bi-journal-check"></i> Riwayat Kebiasaan
+              </a>
+            </li>
+          </ul>
         </div>
 
-        <!-- Kelola Guru & Siswa -->
-        <div class="col-md-8">
-          <!-- Tabel Guru -->
-          <div class="card shadow-sm mb-4">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
-              <span class="fw-bold">Daftar Guru / Wali Kelas</span>
-              <div class="d-flex gap-1">
-                <button class="btn btn-outline-secondary btn-sm" onclick="downloadFormatGuru()">Format Guru CSV</button>
-                <button class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalImportGuru">Import Guru</button>
-                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalTambahGuru">+ Guru</button>
-              </div>
-            </div>
-            <div class="card-body">
-              <table class="table table-bordered align-middle">
-                <thead>
-                  <tr><th>No</th><th>Nama Lengkap</th><th>Username</th><th>Kelas Ampuan</th></tr>
+        <div class="small text-muted text-center pt-3 border-top border-secondary">
+          Versi Aplikasi 2026.1
+        </div>
+      </div>
+
+      <!-- Konten Utama Kanan -->
+      <div class="col-md-9 col-lg-10 bg-light p-4">
+        
+        <!-- Header Halaman & Tombol Tambah -->
+        <div class="d-flex justify-content-between align-items-center mb-3 bg-white p-3 rounded shadow-sm">
+          <div>
+            <h5 class="mb-0 text-primary fw-bold"><i class="bi bi-table me-2"></i>Riwayat Pengisian Kebiasaan</h5>
+            <small class="text-muted">Daftar kegiatan jurnal harian 7 kebiasaan yang telah diisi</small>
+          </div>
+          <button class="btn btn-success fw-bold" data-bs-toggle="modal" data-bs-target="#modalTambahJurnal">
+            <i class="bi bi-plus-circle me-1"></i> + Tambah Kegiatan Kebiasaan
+          </button>
+        </div>
+
+        <!-- Tabel Riwayat Jurnal -->
+        <div class="card border-0 shadow-sm">
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover table-striped mb-0 align-middle">
+                <thead class="table-dark">
+                  <tr>
+                    <th>No</th>
+                    <th>Tanggal</th>
+                    <th>Nama Kebiasaan</th>
+                    <th>Rincian / Catatan</th>
+                    <th>Status</th>
+                  </tr>
                 </thead>
-                <tbody id="tabelGuru"></tbody>
+                <tbody id="tabelRiwayatKebiasaan">
+                  <!-- Data riwayat dimuat dari JS -->
+                </tbody>
               </table>
             </div>
           </div>
-
-          <!-- Tabel Siswa (Admin) -->
-          <div class="card shadow-sm">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
-              <span class="fw-bold">Daftar Semua Siswa</span>
-              <div class="d-flex gap-1">
-                <button class="btn btn-outline-secondary btn-sm" onclick="downloadFormatSiswa()">Format Siswa CSV</button>
-                <button class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalImportSiswa">Import Siswa</button>
-              </div>
-            </div>
-            <div class="card-body">
-              <table class="table table-bordered align-middle">
-                <thead>
-                  <tr><th>No</th><th>NISN</th><th>Nama Siswa</th><th>Kelas</th></tr>
-                </thead>
-                <tbody id="tabelSiswaAdmin"></tbody>
-              </table>
-            </div>
-          </div>
-
         </div>
+
       </div>
     </div>
-
-    <!-- 3. DASHBOARD GURU -->
-    <div id="sectionGuru" class="d-none">
-      <div class="card shadow-sm">
-        <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
-          <h5 class="mb-0 fw-bold" id="titleKelasGuru">Pemantauan Kelas</h5>
-          <div class="d-flex gap-2 flex-wrap">
-            <button class="btn btn-outline-secondary btn-sm" onclick="downloadFormatSiswa()">Download Format CSV</button>
-            <button class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalImportSiswa">Import Siswa CSV</button>
-            <button class="btn btn-warning btn-sm" onclick="cetakKartuLogin()">Cetak Kartu Login</button>
-            <button class="btn btn-info btn-sm text-white" onclick="cetakRekapHarian()">Cetak Rekap Harian</button>
-            <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalTambahSiswa">+ Tambah Siswa</button>
-          </div>
-        </div>
-        <div class="card-body">
-          <table class="table table-striped align-middle">
-            <thead>
-              <tr><th>No</th><th>NISN</th><th>Nama Siswa</th><th>Status Kebiasaan Hari Ini</th></tr>
-            </thead>
-            <tbody id="tabelSiswaGuru"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- 4. DASHBOARD SISWA -->
-    <div id="sectionSiswa" class="d-none">
-      <div class="alert alert-primary text-center fw-bold mb-4">
-        Form Jurnal 7 Kebiasaan Anak Indonesia Hebat
-      </div>
-      <div class="row g-3" id="container7Kebiasaan"></div>
-    </div>
-
   </div>
+</div>
 
-  <!-- MODAL TAMBAH GURU -->
-  <div class="modal fade" id="modalTambahGuru" tabindex="-1">
-    <div class="modal-dialog">
-      <form id="formTambahGuru" class="modal-content">
-        <div class="modal-header"><h5 class="modal-title">Tambah Guru</h5></div>
-        <div class="modal-body">
-          <div class="mb-2"><label class="form-label">Nama Lengkap</label><input type="text" id="guruNama" class="form-control" required></div>
-          <div class="mb-2"><label class="form-label">Kelas Ampuan</label><input type="text" id="guruKelas" class="form-control" placeholder="Contoh: 1A" required></div>
-          <div class="mb-2"><label class="form-label">Username</label><input type="text" id="guruUsername" class="form-control" required></div>
-          <div class="mb-2"><label class="form-label">Password</label><input type="password" id="guruPassword" class="form-control" required></div>
+<!-- MODAL FORM TAMBAH JURNAL -->
+<div class="modal fade" id="modalTambahJurnal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="formTambahJurnal">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>Isi Jurnal Kebiasaan</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
-        <div class="modal-footer"><button type="submit" class="btn btn-primary">Simpan</button></div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label fw-bold">Tanggal</label>
+            <input type="date" id="jurnalTanggal" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">Pilih Kebiasaan</label>
+            <select id="jurnalJenis" class="form-select" onchange="toggleFormDetail(this.value)" required>
+              <option value="">-- Pilih Kebiasaan --</option>
+              <option value="1">1. Bangun Pagi</option>
+              <option value="2">2. Beribadah</option>
+              <option value="3">3. Berolahraga</option>
+              <option value="4">4. Makan Makanan Sehat</option>
+              <option value="5">5. Gemar Membaca</option>
+              <option value="6">6. Bermasyarakat</option>
+              <option value="7">7. Tidur Cepat</option>
+            </select>
+          </div>
+
+          <!-- Dynamic Form Field berdasarkan Pilihan -->
+          <div id="fieldDetailJurnal" class="p-3 bg-light rounded border">
+            <p class="text-muted small mb-0">Silahkan pilih jenis kebiasaan terlebih dahulu.</p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-primary fw-bold">Simpan Kegiatan</button>
+        </div>
       </form>
     </div>
   </div>
-
-  <!-- MODAL IMPORT GURU -->
-  <div class="modal fade" id="modalImportGuru" tabindex="-1">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header"><h5 class="modal-title">Import Data Guru (CSV)</h5></div>
-        <div class="modal-body">
-          <input type="file" id="fileCsvGuru" accept=".csv" class="form-control mb-2">
-          <small class="text-muted">Format header: <code>nama,kelas,username,password</code></small>
-        </div>
-        <div class="modal-footer"><button type="button" onclick="prosesImportGuru()" class="btn btn-success">Upload & Import</button></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL TAMBAH SISWA -->
-  <div class="modal fade" id="modalTambahSiswa" tabindex="-1">
-    <div class="modal-dialog">
-      <form id="formTambahSiswa" class="modal-content">
-        <div class="modal-header"><h5 class="modal-title">Tambah Siswa</h5></div>
-        <div class="modal-body">
-          <div class="mb-2"><label class="form-label">NISN (Sekaligus Username & Password)</label><input type="text" id="siswaNisn" class="form-control" required></div>
-          <div class="mb-2"><label class="form-label">Nama Lengkap Siswa</label><input type="text" id="siswaNama" class="form-control" required></div>
-          <div class="mb-2" id="divInputKelasSiswa" style="display:none;">
-            <label class="form-label">Kelas</label>
-            <input type="text" id="siswaKelas" class="form-control" placeholder="Contoh: 1A">
-          </div>
-        </div>
-        <div class="modal-footer"><button type="submit" class="btn btn-success">Simpan</button></div>
-      </form>
-    </div>
-  </div>
-
-  <!-- MODAL IMPORT SISWA -->
-  <div class="modal fade" id="modalImportSiswa" tabindex="-1">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header"><h5 class="modal-title">Import Data Siswa (CSV)</h5></div>
-        <div class="modal-body">
-          <input type="file" id="fileCsvSiswa" accept=".csv" class="form-control mb-2">
-          <small class="text-muted">Format header: <code>nisn,nama,kelas</code></small>
-        </div>
-        <div class="modal-footer"><button type="button" onclick="prosesImportSiswa()" class="btn btn-success">Upload & Import</button></div>
-      </div>
-    </div>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script type="module" src="app.js"></script>
-</body>
-</html>
+</div>
