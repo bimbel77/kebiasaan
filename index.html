@@ -5,29 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>7 Kebiasaan Anak Indonesia Hebat</title>
     <link rel="stylesheet" href="./css/style.css">
+    <!-- FontAwesome untuk Icon -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
     <!-- Modal Login -->
-    <div id="loginModal" class="login-modal" style="display: flex;">
+    <div id="loginModal" class="login-modal">
         <div class="login-card">
             <h2><i class="fa-solid fa-graduation-cap"></i> Portal Masuk</h2>
-            <p>Pilih Akses Masuk Aplikasi</p>
+            <p>Aplikasi 7 Kebiasaan Anak Indonesia Hebat</p>
             
-            <form id="loginForm" style="margin-top: 15px;">
+            <form id="formLogin" style="margin-top: 20px;">
                 <div class="form-group">
                     <label>Masuk Sebagai:</label>
                     <select id="roleSelect">
                         <option value="admin">Admin Sekolah</option>
                         <option value="guru">Guru</option>
-                        <option value="siswa">Siswa</option>
+                        <option value="siswa" selected>Siswa</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label>Username / NISN / NIP:</label>
-                    <input type="text" id="usernameInput" placeholder="Masukkan username..." required>
+                    <label>Username / Nama / NISN:</label>
+                    <input type="text" id="usernameInput" placeholder="Masukkan nama atau username..." required>
                 </div>
 
                 <div class="form-group">
@@ -35,7 +36,9 @@
                     <input type="password" id="passwordInput" placeholder="Masukkan password..." required>
                 </div>
 
-                <button type="submit" class="btn-primary" style="width: 100%; margin-top: 15px;">Masuk Aplikasi</button>
+                <button type="submit" class="btn-primary" style="width: 100%; margin-top: 15px; padding: 12px; font-size: 1rem;">
+                    Masuk Aplikasi
+                </button>
             </form>
         </div>
     </div>
@@ -51,7 +54,7 @@
             </div>
             
             <div class="user-profile-summary">
-                <span id="userRoleBadge" class="badge">Siswa</span>
+                <span id="userRoleBadge" class="badge">SISWA</span>
                 <h4 id="userNameDisplay" style="margin-top: 5px;">-</h4>
             </div>
 
@@ -65,7 +68,7 @@
         <!-- Main Content Area -->
         <main class="main-content">
             <header class="top-bar">
-                <button class="toggle-btn" id="btnToggleSidebar"><i class="fa-solid fa-bars"></i></button>
+                <button class="toggle-btn" id="btnToggle"><i class="fa-solid fa-bars"></i></button>
                 <h1 id="pageTitle">Dashboard</h1>
             </header>
 
@@ -75,6 +78,7 @@
         </main>
     </div>
 
+    <!-- Firebase SDK & App Logika -->
     <script type="module" src="./js/firebase-config.js"></script>
     <script type="module" src="./js/app.js"></script>
 </body>
