@@ -60,12 +60,11 @@ body {
 }
 
 .nav-item {
-    display: flex;
+   display: flex;
     align-items: center;
     gap: 12px;
     padding: 12px 16px;
-    color: #a3edc;
-    color: #707ebe;
+    color: #707ebe; /* Diperbaiki dari typo sebelumnya */
     text-decoration: none;
     border-radius: 10px;
     cursor: pointer;
