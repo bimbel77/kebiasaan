@@ -1,83 +1,70 @@
 import { db } from './firebase-config.js';
 import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// State User
 let currentUser = null;
 
-// Event Listener Setelah DOM Siap
+// Inisialisasi Event Listener
 document.addEventListener('DOMContentLoaded', () => {
-    const loginForm = document.getElementById('loginForm');
+    const formLogin = document.getElementById('formLogin');
     const btnLogout = document.getElementById('btnLogout');
-    const btnToggle = document.getElementById('btnToggleSidebar');
+    const btnToggle = document.getElementById('btnToggle');
 
-    if (loginForm) {
-        loginForm.addEventListener('submit', prosesLogin);
+    if (formLogin) {
+        formLogin.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const role = document.getElementById('roleSelect').value;
+            const username = document.getElementById('usernameInput').value.trim();
+            const password = document.getElementById('passwordInput').value.trim();
+
+            if (!username || !password) {
+                alert("Silakan isi Username dan Password!");
+                return;
+            }
+
+            // Simpan state user aktif
+            currentUser = { role: role, name: username };
+
+            // Sembunyikan Modal Login & Tampilkan Aplikasi
+            document.getElementById('loginModal').style.setProperty('display', 'none', 'important');
+            document.getElementById('appContainer').style.display = 'flex';
+
+            // Set Profil
+            document.getElementById('userRoleBadge').innerText = role.toUpperCase();
+            document.getElementById('userNameDisplay').innerText = username;
+
+            // Render Navigasi & Load Dashboard
+            renderSidebarMenu();
+            loadPage('dashboard');
+        });
     }
+
     if (btnLogout) {
-        btnLogout.addEventListener('click', logout);
+        btnLogout.addEventListener('click', () => {
+            if (confirm("Apakah Anda yakin ingin keluar?")) {
+                currentUser = null;
+                document.getElementById('appContainer').style.display = 'none';
+                document.getElementById('loginModal').style.setProperty('display', 'flex', 'important');
+                document.getElementById('usernameInput').value = '';
+                document.getElementById('passwordInput').value = '';
+            }
+        });
     }
+
     if (btnToggle) {
-        btnToggle.addEventListener('click', toggleSidebar);
+        btnToggle.addEventListener('click', () => {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.style.display = (sidebar.style.display === 'none' || sidebar.style.display === '') ? 'flex' : 'none';
+        });
     }
 });
 
-// Fungsi Proses Login
-function prosesLogin(e) {
-    e.preventDefault();
-
-    const role = document.getElementById('roleSelect').value;
-    const username = document.getElementById('usernameInput').value.trim();
-    const password = document.getElementById('passwordInput').value.trim();
-
-    if (!username || !password) {
-        alert('Harap isi Username dan Password!');
-        return;
-    }
-
-    // Set Data User Aktif
-    currentUser = {
-        role: role,
-        name: username
-    };
-
-    // Tampilkan App, Sembunyikan Modal Login
-    document.getElementById('loginModal').style.display = 'none';
-    document.getElementById('appContainer').style.display = 'flex';
-
-    // Update Banner Sidebar
-    document.getElementById('userRoleBadge').innerText = currentUser.role.toUpperCase();
-    document.getElementById('userNameDisplay').innerText = currentUser.name;
-
-    // Load Menu & Dashboard
-    renderSidebarMenu();
-    loadPage('dashboard');
-}
-
-// Fungsi Logout
-function logout() {
-    if (confirm('Apakah Anda yakin ingin keluar?')) {
-        currentUser = null;
-        document.getElementById('appContainer').style.display = 'none';
-        document.getElementById('loginModal').style.display = 'flex';
-        document.getElementById('usernameInput').value = '';
-        document.getElementById('passwordInput').value = '';
-    }
-}
-
-// Toggle Sidebar Mobile
-function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    sidebar.style.display = (sidebar.style.display === 'none' || sidebar.style.display === '') ? 'flex' : 'none';
-}
-
-// Render Menu Sesuai Role
+// Render Sidebar Berdasarkan Role
 function renderSidebarMenu() {
     const navMenu = document.getElementById('navMenu');
     navMenu.innerHTML = '';
 
-    let menuItems = [
-        { id: 'dashboard', label: 'Dashboard', icon: 'fa-chart-pie' }
-    ];
+    let menuItems = [{ id: 'dashboard', label: 'Dashboard', icon: 'fa-chart-pie' }];
 
     if (currentUser.role === 'admin') {
         menuItems.push(
@@ -117,7 +104,7 @@ function renderSidebarMenu() {
     });
 }
 
-// Router Konten Halaman
+// Router Konten
 window.loadPage = function(pageId) {
     const body = document.getElementById('contentBody');
     const title = document.getElementById('pageTitle');
@@ -128,8 +115,8 @@ window.loadPage = function(pageId) {
             body.innerHTML = `
                 <div class="card">
                     <h3>Selamat Datang, ${currentUser.name}!</h3>
-                    <p>Status Akses: <strong>${currentUser.role.toUpperCase()}</strong></p>
-                    <p style="margin-top: 10px;">Silakan pilih menu di sebelah kiri untuk mulai menggunakan aplikasi.</p>
+                    <p style="margin-top:5px;">Akses Masuk: <strong>${currentUser.role.toUpperCase()}</strong></p>
+                    <p style="margin-top:10px; color:#707ebe;">Pilih menu di sebelah kiri untuk mengoperasikan aplikasi ini.</p>
                 </div>`;
             break;
 
@@ -146,7 +133,7 @@ window.loadPage = function(pageId) {
             body.innerHTML = renderForm('Form Ibadah Harian', `
                 <div class="form-group"><label>Tanggal</label><input type="date" id="tgl" required></div>
                 <div class="form-group">
-                    <label>Ceklis Sholat / Ibadah Harian:</label>
+                    <label>Ceklis Ibadah yang Dikerjakan:</label>
                     <div class="checkbox-group">
                         <label class="checkbox-item"><input type="checkbox" id="subuh"> Subuh</label>
                         <label class="checkbox-item"><input type="checkbox" id="dzuhur"> Dzuhur</label>
@@ -164,7 +151,7 @@ window.loadPage = function(pageId) {
             title.innerText = "Kebiasaan 3: Berolahraga";
             body.innerHTML = renderForm('Form Olahraga', `
                 <div class="form-group"><label>Tanggal</label><input type="date" id="tgl" required></div>
-                <div class="form-group"><label>Jenis Olahraga</label><input type="text" id="jenis" placeholder="Contoh: Senam, Lari" required></div>
+                <div class="form-group"><label>Jenis Olahraga</label><input type="text" id="jenis" placeholder="Contoh: Senam, Bersepeda" required></div>
                 <div class="form-group"><label>Jam Mulai</label><input type="time" id="jamMulai" required></div>
                 <div class="form-group"><label>Jam Selesai</label><input type="time" id="jamSelesai" required></div>
             `, 'simpanOlahraga');
@@ -174,7 +161,7 @@ window.loadPage = function(pageId) {
             title.innerText = "Kebiasaan 4: Makan Sehat Bergizi";
             body.innerHTML = renderForm('Form Makan Sehat', `
                 <div class="form-group"><label>Tanggal</label><input type="date" id="tgl" required></div>
-                <div class="form-group"><label>Menu Makan Sehat</label><input type="text" id="menu" placeholder="Contoh: Nasi, Sayur, Telur" required></div>
+                <div class="form-group"><label>Menu Makan Sehat</label><input type="text" id="menu" placeholder="Contoh: Nasi, Sayur Bening, Lauk" required></div>
                 <div class="form-group"><label>Keterangan</label><textarea id="ket"></textarea></div>
             `, 'simpanMakan');
             break;
@@ -183,16 +170,16 @@ window.loadPage = function(pageId) {
             title.innerText = "Kebiasaan 5: Gemar Belajar";
             body.innerHTML = renderForm('Form Belajar Mandiri', `
                 <div class="form-group"><label>Tanggal</label><input type="date" id="tgl" required></div>
-                <div class="form-group"><label>Materi / Bacaan</label><input type="text" id="materi" required></div>
+                <div class="form-group"><label>Materi / Buku Bacaan</label><input type="text" id="materi" required></div>
                 <div class="form-group"><label>Kesimpulan</label><textarea id="kesimpulan" required></textarea></div>
             `, 'simpanBelajar');
             break;
 
         case 'bermasyarakat':
             title.innerText = "Kebiasaan 6: Bermasyarakat";
-            body.innerHTML = renderForm('Form Kegiatan Bermasyarakat', `
+            body.innerHTML = renderForm('Form Bermasyarakat', `
                 <div class="form-group"><label>Tanggal</label><input type="date" id="tgl" required></div>
-                <div class="form-group"><label>Jenis Kegiatan</label><input type="text" id="kegiatan" required></div>
+                <div class="form-group"><label>Jenis Kegiatan</label><input type="text" id="kegiatan" placeholder="Membantu kerja bakti, dll" required></div>
                 <div class="form-group"><label>Keterangan</label><textarea id="ket"></textarea></div>
             `, 'simpanMasyarakat');
             break;
@@ -219,13 +206,12 @@ window.loadPage = function(pageId) {
         default:
             body.innerHTML = `
                 <div class="card">
-                    <h3>Fitur ${pageId}</h3>
-                    <p>Halaman aktif dan siap terhubung ke database Firebase.</p>
+                    <h3>Fitur Halaman ${pageId}</h3>
+                    <p>Halaman ini aktif dan terhubung ke sistem.</p>
                 </div>`;
     }
 };
 
-// Helper Render Form
 function renderForm(title, fieldsHtml, submitFunctionName) {
     return `
         <div class="card">
@@ -237,7 +223,7 @@ function renderForm(title, fieldsHtml, submitFunctionName) {
         </div>`;
 }
 
-// Simpan Ke Firebase
+// SIMPAN KE FIREBASE
 window.simpanBangunPagi = async function() {
     try {
         await addDoc(collection(db, "kebiasaan_bangun_pagi"), {
