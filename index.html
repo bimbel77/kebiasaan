@@ -1,402 +1,52 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jurnal 7 Kebiasaan Anak Indonesia Hebat</title>
-  
-  <!-- BOOTSTRAP 5 CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- BOOTSTRAP ICONS -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-
-  <style>
-    :root {
-      --sidebar-bg: #2a3038;
-      --sidebar-hover: #363d47;
-      --topbar-bg: #323a45;
-      --main-bg: #ebedf0;
-    }
-
-    body {
-      background-color: var(--main-bg);
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      font-size: 0.88rem;
-    }
-
-    /* Top Navbar Gaya Dapodik */
-    .top-navbar {
-      background-color: var(--topbar-bg);
-      color: #ffffff;
-      height: 48px;
-    }
-
-    /* Layout Main Wrapper */
-    .app-wrapper {
-      display: flex;
-      min-height: calc(100vh - 48px);
-    }
-
-    /* Sidebar Kiri */
-    .sidebar-dapodik {
-      width: 250px;
-      min-width: 250px;
-      background-color: var(--sidebar-bg);
-      color: #abb2bf;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-
-    .sidebar-profile {
-      background-color: rgba(0, 0, 0, 0.15);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-    .avatar-box {
-      width: 55px;
-      height: 55px;
-      border-radius: 50%;
-      background-color: #f1f3f5;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 2px solid #6c757d;
-    }
-
-    .sidebar-nav .nav-link {
-      color: #b0b7c3;
-      padding: 9px 16px;
-      border-radius: 0;
-      font-size: 0.85rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      transition: all 0.2s;
-    }
-
-    .sidebar-nav .nav-link:hover {
-      background-color: var(--sidebar-hover);
-      color: #ffffff;
-    }
-
-    .sidebar-nav .nav-link.active {
-      background-color: #0d6efd;
-      color: #ffffff;
-      font-weight: 600;
-    }
-
-    .badge-sinkron {
-      background-color: #198754;
-      color: white;
-      font-size: 0.75rem;
-      border-radius: 4px;
-      padding: 6px 10px;
-      display: block;
-      text-align: center;
-      margin: 10px;
-      border: 1px solid #146c43;
-    }
-
-    /* Main Content Area */
-    .main-content {
-      flex-grow: 1;
-      padding: 15px;
-      overflow-x: hidden;
-    }
-
-    /* Stat Cards (Mirip Dashboard Dapodik) */
-    .stat-card {
-      border: none;
-      border-radius: 12px;
-      color: white;
-      padding: 15px;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.08);
-    }
-
-    .stat-card .stat-number {
-      font-size: 2rem;
-      font-weight: 700;
-      line-height: 1;
-    }
-
-    .stat-card .stat-label {
-      font-size: 0.8rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      opacity: 0.9;
-    }
-
-    .stat-card .stat-icon {
-      position: absolute;
-      right: 15px;
-      bottom: 10px;
-      font-size: 2.2rem;
-      opacity: 0.3;
-    }
-
-    .bg-purple { background: linear-gradient(135deg, #6f42c1, #593196); }
-    .bg-cyan   { background: linear-gradient(135deg, #0dcaf0, #0aa2c0); }
-    .bg-orange { background: linear-gradient(135deg, #fd7e14, #d96302); }
-    .bg-green  { background: linear-gradient(135deg, #198754, #115c39); }
-    .bg-pink   { background: linear-gradient(135deg, #e83e8c, #b82367); }
-
-    /* Print Style */
-    @media print {
-      body * { visibility: hidden; }
-      #printArea, #printArea * { visibility: visible; }
-      #printArea { position: absolute; left: 0; top: 0; width: 100%; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>7 Kebiasaan Anak Indonesia Hebat</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- FontAwesome untuk Icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
-  <!-- Top Navbar -->
-  <header class="top-navbar d-flex align-items-center justify-content-between px-3 shadow-sm">
-    <div class="d-flex align-items-center gap-2">
-      <button class="btn btn-sm text-white p-0 border-0 me-2" id="btnToggleSidebar">
-        <i class="bi bi-list fs-4"></i>
-      </button>
-      <i class="bi bi-journal-bookmark-fill text-warning"></i>
-      <span class="fw-bold text-uppercase tracking-wide">Jurnal 7 Kebiasaan Anak Indonesia Hebat</span>
-    </div>
-    <div class="d-flex align-items-center gap-3">
-      <span id="headerSiswaNama" class="fw-semibold small">Siswa - SD NEGERI 129 BARRU</span>
-      <button id="btnLogout" class="btn btn-xs btn-outline-light py-1 px-2 text-small">
-        <i class="bi bi-box-arrow-right me-1"></i>Keluar
-      </button>
-    </div>
-  </header>
-
-  <!-- Main Layout -->
-  <div class="app-wrapper">
-    
-    <!-- Sidebar Kiri -->
-    <aside class="sidebar-dapodik">
-      <div>
-        <!-- Profile Widget -->
-        <div class="sidebar-profile p-3 text-center">
-          <div class="avatar-box mx-auto mb-2">
-            <i class="bi bi-person-fill fs-1 text-secondary"></i>
-          </div>
-          <h6 id="sidebarSiswaNama" class="text-white mb-0 fw-bold">NAMA SISWA</h6>
-          <small class="text-warning d-block mb-1" style="font-size: 0.75rem;">Siswa Aktif</small>
-          <span class="badge bg-success mb-1">Akun Terverifikasi</span>
-          <div id="sidebarSiswaKelas" class="text-white-50 small">Kelas 5A</div>
-        </div>
-
-        <div class="badge-sinkron">
-          <i class="bi bi-check-circle-fill me-1"></i> Status Terhubung Firestore
-        </div>
-
-        <!-- Navigation Menu -->
-        <ul class="nav flex-column sidebar-nav mt-2">
-          <li class="nav-item">
-            <a href="#dashboard" class="nav-link active" id="menuDashboard">
-              <span><i class="bi bi-speedometer2 me-2"></i>Beranda</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="#riwayat" class="nav-link" id="menuRiwayat">
-              <span><i class="bi bi-journal-check me-2"></i>Riwayat Kebiasaan</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#modalTambahJurnal">
-              <span><i class="bi bi-plus-circle-fill me-2 text-success"></i>Tambah Jurnal</span>
-              <span class="badge bg-danger rounded-pill">NEW</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="#informasi" class="nav-link">
-              <span><i class="bi bi-info-circle me-2"></i>Informasi Program</span>
-            </a>
-          </li>
-        </ul>
-      </div>
-
-      <div class="p-3 text-center text-muted border-top border-secondary small">
-        Versi Aplikasi: <strong>v2026.1</strong>
-      </div>
-    </aside>
-
-    <!-- Main Content Area -->
-    <main class="main-content">
-      
-      <!-- Row 1: Stat Cards (Dashboard Header) -->
-      <div class="row g-3 mb-4">
-        <div class="col-md">
-          <div class="stat-card bg-purple">
-            <div class="stat-label">Total Kebiasaan</div>
-            <div class="stat-number">7</div>
-            <i class="bi bi-star-fill stat-icon"></i>
-          </div>
-        </div>
-        <div class="col-md">
-          <div class="stat-card bg-cyan">
-            <div class="stat-label">Bangun Pagi</div>
-            <div class="stat-number" id="statBangunPagi">05:00</div>
-            <i class="bi bi-alarm-fill stat-icon"></i>
-          </div>
-        </div>
-        <div class="col-md">
-          <div class="stat-card bg-orange">
-            <div class="stat-label">Jurnal Terisi</div>
-            <div class="stat-number" id="statTotalJurnal">0</div>
-            <i class="bi bi-file-earmark-check-fill stat-icon"></i>
-          </div>
-        </div>
-        <div class="col-md">
-          <div class="stat-card bg-green">
-            <div class="stat-label">Keaktifan Bulan Ini</div>
-            <div class="stat-number" id="statKeaktifan">100%</div>
-            <i class="bi bi-emoji-smile-fill stat-icon"></i>
-          </div>
-        </div>
-        <div class="col-md">
-          <div class="stat-card bg-pink">
-            <div class="stat-label">Target Harian</div>
-            <div class="stat-number">7 / 7</div>
-            <i class="bi bi-check2-square stat-icon"></i>
-          </div>
-        </div>
-      </div>
-
-      <!-- Row 2: Informasi Sekolah & Quick Banner -->
-      <div class="row g-3 mb-4">
-        <div class="col-lg-8">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white fw-bold text-dark py-3">
-              <i class="bi bi-building me-2 text-primary"></i>INFORMASI PENERAPAN 7 KEBIASAAN
+    <!-- Container Utama -->
+    <div class="app-container" id="appContainer">
+        
+        <!-- Sidebar Kiri -->
+        <aside class="sidebar" id="sidebar">
+            <div class="brand">
+                <i class="fa-solid fa-graduation-cap"></i>
+                <h2>Anak Hebat</h2>
             </div>
-            <div class="card-body">
-              <div class="row">
-                <div class="col-md-7">
-                  <table class="table table-sm table-borderless">
-                    <tr><td class="text-muted" width="140">Program:</td><td class="fw-bold">7 Kebiasaan Anak Indonesia Hebat</td></tr>
-                    <tr><td class="text-muted">Sasaran:</td><td class="fw-bold">Pembentukan Karakter Murid SD</td></tr>
-                    <tr><td class="text-muted">Status Pengisian:</td><td><span class="badge bg-success">Aktif / Hari Ini</span></td></tr>
-                    <tr><td class="text-muted">Pendamping:</td><td class="fw-semibold text-primary">Wali Kelas & Orang Tua</td></tr>
-                  </table>
-                </div>
-                <div class="col-md-5 bg-light p-3 rounded d-flex flex-column justify-content-center text-center">
-                  <i class="bi bi-award fs-1 text-warning mb-2"></i>
-                  <h6 class="fw-bold mb-1">Bangun Karakter Unggul</h6>
-                  <p class="text-muted small mb-0">Isi jurnal kebiasaan setiap hari secara jujur dan konsisten!</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-lg-4">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white fw-bold text-dark py-3">
-              <i class="bi bi-megaphone me-2 text-danger"></i>Pengumuman
-            </div>
-            <div class="card-body">
-              <ul class="list-unstyled mb-0 small">
-                <li class="mb-2 pb-2 border-bottom">
-                  <span class="fw-bold d-block text-primary">Isi Jurnal Tepat Waktu</span>
-                  <span class="text-muted">Pastikan mengisi jurnal setelah menyelesaikan kegiatan rutin setiap harinya.</span>
-                </li>
-                <li>
-                  <span class="fw-bold d-block text-success">Verifikasi Wali Kelas</span>
-                  <span class="text-muted">Jurnal yang diisi akan dicek berkala oleh guru/wali kelas Anda.</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Row 3: Tabel Riwayat Kebiasaan -->
-      <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
-          <div>
-            <h6 class="mb-0 fw-bold text-primary"><i class="bi bi-table me-2"></i>Riwayat Pengisian Kebiasaan</h6>
-            <small class="text-muted">Daftar kegiatan harian yang telah diinputkan</small>
-          </div>
-          <button class="btn btn-success btn-sm fw-semibold" data-bs-toggle="modal" data-bs-target="#modalTambahJurnal">
-            <i class="bi bi-plus-circle me-1"></i> + Tambah Kegiatan Kebiasaan
-          </button>
-        </div>
-        <div class="card-body p-0">
-          <div class="table-responsive">
-            <table class="table table-hover table-striped mb-0 align-middle">
-              <thead class="table-dark">
-                <tr>
-                  <th width="60">No</th>
-                  <th width="120">Tanggal</th>
-                  <th>Nama Kebiasaan</th>
-                  <th>Rincian / Catatan</th>
-                  <th width="120" class="text-center">Status</th>
-                </tr>
-              </thead>
-              <tbody id="tabelRiwayatKebiasaan">
-                <tr>
-                  <td colspan="5" class="text-center py-4 text-muted">
-                    Memuat riwayat kegiatan...
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-    </main>
-  </div>
-
-  <!-- MODAL TAMBAH JURNAL -->
-  <div class="modal fade" id="modalTambahJurnal" tabindex="-1" aria-labelledby="modalTambahLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header bg-primary text-white">
-          <h6 class="modal-title fw-bold" id="modalTambahLabel"><i class="bi bi-plus-circle me-2"></i>Tambah Jurnal Kebiasaan</h6>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <form id="formTambahJurnal">
-          <div class="modal-body">
             
-            <div class="mb-3">
-              <label class="form-label small fw-bold">Tanggal Kegiatan</label>
-              <input type="date" id="jurnalTanggal" class="form-control" required>
+            <div class="user-profile-summary">
+                <p id="userRoleBadge" class="badge">Guest</p>
+                <h4 id="userNameDisplay">Silakan Login</h4>
             </div>
 
-            <div class="mb-3">
-              <label class="form-label small fw-bold">Pilih Jenis Kebiasaan</label>
-              <select id="jurnalJenis" class="form-select" onchange="toggleFormDetail(this.value)" required>
-                <option value="">-- Pilih Kebiasaan --</option>
-                <option value="1">1. Bangun Pagi</option>
-                <option value="2">2. Beribadah</option>
-                <option value="3">3. Berolahraga</option>
-                <option value="4">4. Makan Makanan Sehat</option>
-                <option value="5">5. Gemar Membaca</option>
-                <option value="6">6. Bermasyarakat</option>
-                <option value="7">7. Tidur Cepat</option>
-              </select>
-            </div>
+            <nav class="nav-menu" id="navMenu">
+                <!-- Navigasi akan diisi secara dinamis oleh JavaScript sesuai Role -->
+            </nav>
 
-            <div class="p-3 bg-light rounded border mb-3" id="fieldDetailJurnal">
-              <p class="text-muted small mb-0">Silahkan pilih jenis kebiasaan terlebih dahulu.</p>
-            </div>
+            <button class="btn-logout" id="btnLogout" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Keluar</button>
+        </aside>
 
-          </div>
-          <div class="modal-footer bg-light">
-            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
-            <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-save me-1"></i>Simpan Jurnal</button>
-          </div>
-        </form>
-      </div>
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="top-bar">
+                <button class="toggle-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+                <h1 id="pageTitle">Dashboard</h1>
+            </header>
+
+            <section class="content-body" id="contentBody">
+                <!-- Konten Halaman akan Berganti Secara Dinamis -->
+            </section>
+        </main>
     </div>
-  </div>
 
-  <!-- SCRIPT BOOTSTRAP JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <!-- SCRIPT APLIKASI -->
-  <script type="module" src="app.js"></script>
+    <!-- Firebase SDK (Modular CDN v10+) -->
+    <script type="module" src="js/firebase-config.js"></script>
+    <script type="module" src="js/app.js"></script>
 </body>
 </html>
