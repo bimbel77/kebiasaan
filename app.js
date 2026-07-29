@@ -7,13 +7,13 @@ let currentUser = null;
 const todayStr = new Date().toISOString().split('T')[0];
 
 const LIST_KEBIASAAN = [
-  { id: 1, nama: "Bangun Pagi", desc: "Bangun tepat waktu di pagi hari" },
-  { id: 2, nama: "Beribadah", desc: "Melaksanakan ibadah sesuai agama masing-masing" },
-  { id: 3, nama: "Berolahraga", desc: "Melakukan aktivitas fisik minimal 15-30 menit" },
-  { id: 4, nama: "Makan Makanan Sehat", desc: "Makan makanan bergizi & minum air putih cukup" },
-  { id: 5, nama: "Gemar Membaca", desc: "Membaca buku pelajaran/cerita minimal 15 menit" },
-  { id: 6, nama: "Bermasyarakat", desc: "Membantu orang tua, menyapa tetangga, atau berbuat baik" },
-  { id: 7, nama: "Tidur Cepat", desc: "Tidur malam tepat waktu (tidak begadang)" }
+  { id: 1, nama: "1. Bangun Pagi", desc: "Bangun tepat waktu di pagi hari" },
+  { id: 2, nama: "2. Beribadah", desc: "Melaksanakan ibadah 5 waktu / sesuai agama" },
+  { id: 3, nama: "3. Berolahraga", desc: "Melakukan aktivitas fisik & olahraga" },
+  { id: 4, nama: "4. Makan Makanan Sehat", desc: "Makan makanan bergizi dan seimbang" },
+  { id: 5, nama: "5. Gemar Membaca", desc: "Membaca buku pelajaran atau cerita" },
+  { id: 6, nama: "6. Bermasyarakat", desc: "Membantu orang tua & lingkungan sekitar" },
+  { id: 7, nama: "7. Tidur Cepat", desc: "Tidur malam tepat waktu" }
 ];
 
 // INITIALIZATION
@@ -44,11 +44,9 @@ async function handleLogin(e) {
   const alertBox = document.getElementById("loginAlert");
 
   try {
-    // Cek Admin Default
     if (u === "admin" && p === "admin123") {
       currentUser = { username: "admin", nama: "Administrator", role: "admin" };
     } else {
-      // Cek Firestore
       const q = query(collection(db, "users"), where("username", "==", u), where("password", "==", p));
       const snapshot = await getDocs(q);
       if (!snapshot.empty) {
@@ -83,13 +81,13 @@ function showDashboard() {
     showSection("sectionAdmin");
     loadSekolah();
     loadGuru();
+    loadSiswaAdmin();
   } else if (currentUser.role === "guru") {
     showSection("sectionGuru");
     document.getElementById("titleKelasGuru").textContent = `Pemantauan Kelas ${currentUser.kelas}`;
     loadSiswaGuru();
   } else if (currentUser.role === "siswa") {
     showSection("sectionSiswa");
-    document.getElementById("tglHariIni").textContent = `Pantauan Harian: ${new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`;
     loadKebiasaanSiswa();
   }
 }
@@ -140,6 +138,23 @@ async function loadGuru() {
   });
 }
 
+async function loadSiswaAdmin() {
+  const q = query(collection(db, "users"), where("role", "==", "siswa"));
+  const snapshot = await getDocs(q);
+  const tbody = document.getElementById("tabelSiswaAdmin");
+  tbody.innerHTML = "";
+  let no = 1;
+  snapshot.forEach(doc => {
+    const s = doc.data();
+    tbody.innerHTML += `<tr>
+      <td>${no++}</td>
+      <td>${s.nisn}</td>
+      <td>${s.nama}</td>
+      <td><span class="badge bg-secondary">Kelas ${s.kelas}</span></td>
+    </tr>`;
+  });
+}
+
 async function tambahGuru(e) {
   e.preventDefault();
   await addDoc(collection(db, "users"), {
@@ -166,7 +181,6 @@ async function loadSiswaGuru() {
     const s = docSiswa.data();
     const sId = docSiswa.id;
 
-    // Cek log hari ini
     const logQ = query(collection(db, "log_kebiasaan"), where("siswa_id", "==", sId), where("tanggal", "==", todayStr), where("status", "==", "Ya"));
     const logSnap = await getDocs(logQ);
     const count = logSnap.size;
@@ -183,20 +197,24 @@ async function loadSiswaGuru() {
 async function tambahSiswa(e) {
   e.preventDefault();
   const nisn = document.getElementById("siswaNisn").value;
+  const kelas = currentUser.role === "guru" ? currentUser.kelas : document.getElementById("siswaKelas").value;
+
   await addDoc(collection(db, "users"), {
     nama: document.getElementById("siswaNama").value,
     nisn: nisn,
     username: nisn,
     password: nisn,
-    kelas: currentUser.kelas,
+    kelas: kelas,
     role: "siswa"
   });
   bootstrap.Modal.getInstance(document.getElementById("modalTambahSiswa")).hide();
   document.getElementById("formTambahSiswa").reset();
-  loadSiswaGuru();
+  
+  if(currentUser.role === "guru") loadSiswaGuru();
+  else loadSiswaAdmin();
 }
 
-// LOGIKA SISWA
+// LOGIKA SISWA & FORM ISIAN KEBIASAAN
 async function loadKebiasaanSiswa() {
   const container = document.getElementById("container7Kebiasaan");
   container.innerHTML = "";
@@ -205,8 +223,57 @@ async function loadKebiasaanSiswa() {
     const docId = `${currentUser.id}_${k.id}_${todayStr}`;
     const logRef = doc(db, "log_kebiasaan", docId);
     const logSnap = await getDoc(logRef);
-    const isDone = logSnap.exists() && logSnap.data().status === "Ya";
-    const catatan = logSnap.exists() ? (logSnap.data().catatan || "") : "";
+    const logData = logSnap.exists() ? logSnap.data() : {};
+    const isDone = logData.status === "Ya";
+
+    let formFieldsHTML = "";
+
+    // DYNAMIC FORM ACCORDING TO USER REQUIREMENTS
+    if (k.id === 1) { // Bangun Pagi
+      formFieldsHTML = `
+        <div class="mb-2"><label class="form-label small">Tanggal</label><input type="date" id="tgl_${k.id}" class="form-control form-control-sm" value="${logData.tanggal || todayStr}"></div>
+        <div class="mb-2"><label class="form-label small">Jam Bangun</label><input type="time" id="jam_${k.id}" class="form-control form-control-sm" value="${logData.jam || '05:00'}"></div>
+      `;
+    } else if (k.id === 2) { // Beribadah
+      const sholat = logData.sholat || {};
+      formFieldsHTML = `
+        <div class="mb-2"><label class="form-label small">Tanggal</label><input type="date" id="tgl_${k.id}" class="form-control form-control-sm" value="${logData.tanggal || todayStr}"></div>
+        <label class="form-label small fw-bold">Ceklis 5 Waktu Sholat:</label>
+        <div class="d-flex flex-wrap gap-2 mb-2">
+          <div class="form-check"><input class="form-check-input" type="checkbox" id="sholat_subuh" ${sholat.subuh ? 'checked':''}><label class="form-check-label small">Subuh</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" id="sholat_dzuhur" ${sholat.dzuhur ? 'checked':''}><label class="form-check-label small">Dzuhur</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" id="sholat_ashar" ${sholat.ashar ? 'checked':''}><label class="form-check-label small">Ashar</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" id="sholat_maghrib" ${sholat.maghrib ? 'checked':''}><label class="form-check-label small">Maghrib</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" id="sholat_isya" ${sholat.isya ? 'checked':''}><label class="form-check-label small">Isya</label></div>
+        </div>
+      `;
+    } else if (k.id === 3) { // Berolahraga
+      formFieldsHTML = `
+        <div class="mb-2"><label class="form-label small">Tanggal</label><input type="date" id="tgl_${k.id}" class="form-control form-control-sm" value="${logData.tanggal || todayStr}"></div>
+        <div class="mb-2"><label class="form-label small">Jenis Olahraga</label><input type="text" id="olahraga_${k.id}" class="form-control form-control-sm" placeholder="Contoh: Lari / Senam" value="${logData.jenis_olahraga || ''}"></div>
+      `;
+    } else if (k.id === 4) { // Makan Makanan Sehat
+      formFieldsHTML = `
+        <div class="mb-2"><label class="form-label small">Tanggal</label><input type="date" id="tgl_${k.id}" class="form-control form-control-sm" value="${logData.tanggal || todayStr}"></div>
+        <div class="mb-2"><label class="form-label small">Isian Menu Bergizi</label><input type="text" id="menu_${k.id}" class="form-control form-control-sm" placeholder="Contoh: Nasi, Sayur Bayam, Telur" value="${logData.menu || ''}"></div>
+      `;
+    } else if (k.id === 5) { // Gemar Membaca
+      formFieldsHTML = `
+        <div class="mb-2"><label class="form-label small">Tanggal</label><input type="date" id="tgl_${k.id}" class="form-control form-control-sm" value="${logData.tanggal || todayStr}"></div>
+        <div class="mb-2"><label class="form-label small">Judul Bacaan</label><input type="text" id="judul_${k.id}" class="form-control form-control-sm" placeholder="Judul buku" value="${logData.judul || ''}"></div>
+        <div class="mb-2"><label class="form-label small">Ringkasan</label><textarea id="ringkasan_${k.id}" class="form-control form-control-sm" rows="2" placeholder="Ringkasan singkat">${logData.ringkasan || ''}</textarea></div>
+      `;
+    } else if (k.id === 6) { // Bermasyarakat
+      formFieldsHTML = `
+        <div class="mb-2"><label class="form-label small">Tanggal</label><input type="date" id="tgl_${k.id}" class="form-control form-control-sm" value="${logData.tanggal || todayStr}"></div>
+        <div class="mb-2"><label class="form-label small">Kegiatan</label><input type="text" id="kegiatan_${k.id}" class="form-control form-control-sm" placeholder="Contoh: Membantu Orang Tua / Kerja Bakti" value="${logData.kegiatan || ''}"></div>
+      `;
+    } else if (k.id === 7) { // Tidur Cepat
+      formFieldsHTML = `
+        <div class="mb-2"><label class="form-label small">Tanggal</label><input type="date" id="tgl_${k.id}" class="form-control form-control-sm" value="${logData.tanggal || todayStr}"></div>
+        <div class="mb-2"><label class="form-label small">Jam Tidur</label><input type="time" id="jam_${k.id}" class="form-control form-control-sm" value="${logData.jam || '21:00'}"></div>
+      `;
+    }
 
     container.innerHTML += `
     <div class="col-md-6 col-lg-4">
@@ -214,12 +281,12 @@ async function loadKebiasaanSiswa() {
         <div class="card-body d-flex flex-column justify-content-between">
           <div>
             <h5 class="card-title text-primary fw-bold">${k.nama}</h5>
-            <p class="card-text text-muted small">${k.desc}</p>
+            <p class="card-text text-muted small mb-3">${k.desc}</p>
+            ${formFieldsHTML}
           </div>
           <div class="mt-3">
-            <input type="text" id="catatan_${k.id}" class="form-control form-control-sm mb-2" placeholder="Catatan (Opsional)" value="${catatan}">
             <button onclick="simpanKebiasaanSiswa(${k.id})" class="btn btn-sm w-100 ${isDone ? 'btn-success' : 'btn-outline-success'}">
-              ${isDone ? '✓ Sudah Terlaksana' : 'Tandai Sudah'}
+              ${isDone ? '✓ Perbarui Isian' : 'Simpan Kebiasaan'}
             </button>
           </div>
         </div>
@@ -229,17 +296,121 @@ async function loadKebiasaanSiswa() {
 }
 
 window.simpanKebiasaanSiswa = async function(kebiasaanId) {
-  const docId = `${currentUser.id}_${kebiasaanId}_${todayStr}`;
-  const catatanVal = document.getElementById(`catatan_${kebiasaanId}`).value;
+  const tglVal = document.getElementById(`tgl_${kebiasaanId}`).value;
+  const docId = `${currentUser.id}_${kebiasaanId}_${tglVal}`;
 
-  await setDoc(doc(db, "log_kebiasaan", docId), {
+  let payload = {
     siswa_id: currentUser.id,
     kebiasaan_id: kebiasaanId,
-    tanggal: todayStr,
-    status: "Ya",
-    catatan: catatanVal
-  });
+    tanggal: tglVal,
+    status: "Ya"
+  };
+
+  if (kebiasaanId === 1 || kebiasaanId === 7) {
+    payload.jam = document.getElementById(`jam_${kebiasaanId}`).value;
+  } else if (kebiasaanId === 2) {
+    payload.sholat = {
+      subuh: document.getElementById("sholat_subuh").checked,
+      dzuhur: document.getElementById("sholat_dzuhur").checked,
+      ashar: document.getElementById("sholat_ashar").checked,
+      maghrib: document.getElementById("sholat_maghrib").checked,
+      isya: document.getElementById("sholat_isya").checked
+    };
+  } else if (kebiasaanId === 3) {
+    payload.jenis_olahraga = document.getElementById(`olahraga_${kebiasaanId}`).value;
+  } else if (kebiasaanId === 4) {
+    payload.menu = document.getElementById(`menu_${kebiasaanId}`).value;
+  } else if (kebiasaanId === 5) {
+    payload.judul = document.getElementById(`judul_${kebiasaanId}`).value;
+    payload.ringkasan = document.getElementById(`ringkasan_${kebiasaanId}`).value;
+  } else if (kebiasaanId === 6) {
+    payload.kegiatan = document.getElementById(`kegiatan_${kebiasaanId}`).value;
+  }
+
+  await setDoc(doc(db, "log_kebiasaan", docId), payload);
+  alert("Data kebiasaan berhasil disimpan!");
   loadKebiasaanSiswa();
+};
+
+// FITUR DOWNLOAD FORMAT CSV
+window.downloadFormatGuru = function() {
+  const csvContent = "data:text/csv;charset=utf-8,nama,kelas,username,password\nBudi Santoso,1A,budi1a,123456\nSiti Rahma,2B,siti2b,123456";
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", "format_import_guru.csv");
+  document.body.appendChild(link);
+  link.click();
+};
+
+window.downloadFormatSiswa = function() {
+  const csvContent = "data:text/csv;charset=utf-8,nisn,nama,kelas\n1234567890,Ahmad Fauzi,1A\n0987654321,Anisa Putri,1A";
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", "format_import_siswa.csv");
+  document.body.appendChild(link);
+  link.click();
+};
+
+// FITUR IMPORT CSV GURU & SISWA
+window.prosesImportGuru = function() {
+  const fileInput = document.getElementById("fileCsvGuru");
+  if (!fileInput.files.length) return alert("Pilih file CSV terlebih dahulu!");
+
+  const file = fileInput.files[0];
+  const reader = new FileReader();
+  reader.onload = async function(e) {
+    const lines = e.target.result.split("\n");
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (line) {
+        const [nama, kelas, username, password] = line.split(",");
+        if (nama && username) {
+          await addDoc(collection(db, "users"), {
+            nama, kelas, username, password, role: "guru"
+          });
+        }
+      }
+    }
+    alert("Import Data Guru Berhasil!");
+    bootstrap.Modal.getInstance(document.getElementById("modalImportGuru")).hide();
+    loadGuru();
+  };
+  reader.readAsText(file);
+};
+
+window.prosesImportSiswa = function() {
+  const fileInput = document.getElementById("fileCsvSiswa");
+  if (!fileInput.files.length) return alert("Pilih file CSV terlebih dahulu!");
+
+  const file = fileInput.files[0];
+  const reader = new FileReader();
+  reader.onload = async function(e) {
+    const lines = e.target.result.split("\n");
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (line) {
+        const [nisn, nama, kelas] = line.split(",");
+        const kelasFix = currentUser.role === "guru" ? currentUser.kelas : kelas;
+        if (nisn && nama) {
+          await addDoc(collection(db, "users"), {
+            nisn: nisn.trim(),
+            nama: nama.trim(),
+            username: nisn.trim(),
+            password: nisn.trim(),
+            kelas: kelasFix ? kelasFix.trim() : "",
+            role: "siswa"
+          });
+        }
+      }
+    }
+    alert("Import Data Siswa Berhasil!");
+    bootstrap.Modal.getInstance(document.getElementById("modalImportSiswa")).hide();
+    if (currentUser.role === "guru") loadSiswaGuru();
+    else loadSiswaAdmin();
+  };
+  reader.readAsText(file);
 };
 
 // FITUR CETAK (GURU)
