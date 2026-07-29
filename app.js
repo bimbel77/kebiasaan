@@ -1,4 +1,22 @@
-// Nama Kebiasaan Map
+import { db, auth } from "./firebase-config.js"; // pastikan firebase terkonfigurasi
+import { 
+  collection, 
+  doc, 
+  setDoc, 
+  query, 
+  where, 
+  getDocs 
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+// Dummy Data Pengguna Aktif (Jika belum menggunakan Auth Firestore penuh)
+const currentUser = {
+  id: "SISWA_101",
+  nama: "ZAKARIA",
+  kelas: "5 A",
+  username: "zakaria129"
+};
+
+// Map Nama Kebiasaan
 const NAMA_KEBIASAAN = {
   1: "1. Bangun Pagi",
   2: "2. Beribadah",
@@ -9,17 +27,33 @@ const NAMA_KEBIASAAN = {
   7: "7. Tidur Cepat"
 };
 
-// Event listener form tambah jurnal
-document.getElementById("formTambahJurnal").addEventListener("submit", simpanJurnalSiswa);
+// Format Tanggal Hari Ini (YYYY-MM-DD)
+const todayStr = new Date().toISOString().split('T')[0];
 
-// Set tanggal default ke hari ini
-document.getElementById("jurnalTanggal").value = todayStr;
+document.addEventListener("DOMContentLoaded", () => {
+  // Set default tanggal form ke hari ini
+  const tglInput = document.getElementById("jurnalTanggal");
+  if (tglInput) tglInput.value = todayStr;
+
+  // Render Dashboard
+  renderDashboardSiswa();
+
+  // Attach submit listener
+  const formJurnal = document.getElementById("formTambahJurnal");
+  if (formJurnal) {
+    formJurnal.addEventListener("submit", simpanJurnalSiswa);
+  }
+});
 
 // Menampilkan Dashboard Siswa
 function renderDashboardSiswa() {
-  document.getElementById("sidebarSiswaNama").textContent = currentUser.nama;
-  document.getElementById("sidebarSiswaKelas").textContent = `Kelas ${currentUser.kelas || '-'}`;
-  document.getElementById("headerSiswaNama").textContent = `${currentUser.nama} (SISWA)`;
+  const elemSidebarNama = document.getElementById("sidebarSiswaNama");
+  const elemSidebarKelas = document.getElementById("sidebarSiswaKelas");
+  const elemHeaderNama = document.getElementById("headerSiswaNama");
+
+  if (elemSidebarNama) elemSidebarNama.textContent = currentUser.nama;
+  if (elemSidebarKelas) elemSidebarKelas.textContent = `Kelas ${currentUser.kelas || '-'}`;
+  if (elemHeaderNama) elemHeaderNama.textContent = `${currentUser.nama} (SISWA) - SD NEGERI 129 BARRU`;
   
   loadRiwayatSiswa();
 }
@@ -28,11 +62,17 @@ function renderDashboardSiswa() {
 async function loadRiwayatSiswa() {
   const sId = currentUser.id || currentUser.username;
   const tbody = document.getElementById("tabelRiwayatKebiasaan");
+  if (!tbody) return;
+
   tbody.innerHTML = `<tr><td colspan="5" class="text-center py-3">Memuat riwayat...</td></tr>`;
 
   try {
     const q = query(collection(db, "log_kebiasaan"), where("siswa_id", "==", sId));
     const snapshot = await getDocs(q);
+
+    // Update Counter di Card Dashboard
+    const totalElem = document.getElementById("statTotalJurnal");
+    if (totalElem) totalElem.textContent = snapshot.size;
 
     if (snapshot.empty) {
       tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">Belum ada riwayat kegiatan. Klik tombol <b>"+ Tambah Kegiatan Kebiasaan"</b> untuk menambahkan.</td></tr>`;
@@ -46,7 +86,7 @@ async function loadRiwayatSiswa() {
       
       // Format Rincian
       let rincian = "-";
-      if (d.kebiasaan_id == 1 || d.kebiasaan_id == 7) rincian = `Pukul: ${d.jam || '-'}`;
+      if (d.kebiasaan_id == 1 || d.kebiasaan_id == 7) rincian = `Pukul: <b>${d.jam || '-'}</b>`;
       else if (d.kebiasaan_id == 2) {
         const sh = d.sholat || {};
         const listSholat = [];
@@ -57,18 +97,18 @@ async function loadRiwayatSiswa() {
         if (sh.isya) listSholat.push("Isya");
         rincian = listSholat.length > 0 ? listSholat.join(", ") : "Tidak sholat";
       }
-      else if (d.kebiasaan_id == 3) rincian = `Olahraga: ${d.jenis_olahraga || '-'}`;
-      else if (d.kebiasaan_id == 4) rincian = `Menu: ${d.menu || '-'}`;
-      else if (d.kebiasaan_id == 5) rincian = `Judul: ${d.judul || '-'} (${d.ringkasan || ''})`;
-      else if (d.kebiasaan_id == 6) rincian = `Kegiatan: ${d.kegiatan || '-'}`;
+      else if (d.kebiasaan_id == 3) rincian = `Olahraga: <b>${d.jenis_olahraga || '-'}</b>`;
+      else if (d.kebiasaan_id == 4) rincian = `Menu: <b>${d.menu || '-'}</b>`;
+      else if (d.kebiasaan_id == 5) rincian = `Judul: <b>${d.judul || '-'}</b> (${d.ringkasan || ''})`;
+      else if (d.kebiasaan_id == 6) rincian = `Kegiatan: <b>${d.kegiatan || '-'}</b>`;
 
       tbody.innerHTML += `
         <tr>
           <td>${no++}</td>
           <td>${d.tanggal}</td>
-          <td><span class="fw-bold">${NAMA_KEBIASAAN[d.kebiasaan_id] || d.kebiasaan_id}</span></td>
+          <td><span class="fw-bold text-dark">${NAMA_KEBIASAAN[d.kebiasaan_id] || d.kebiasaan_id}</span></td>
           <td>${rincian}</td>
-          <td><span class="badge bg-success">Terlaksana</span></td>
+          <td class="text-center"><span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Terlaksana</span></td>
         </tr>
       `;
     });
@@ -77,20 +117,20 @@ async function loadRiwayatSiswa() {
   }
 }
 
-// Render Input Dinamis di Modal
+// Render Input Dinamis di Modal (Didaftarkan ke window agar onchange HTML dapat memanggilnya)
 window.toggleFormDetail = function(val) {
   const container = document.getElementById("fieldDetailJurnal");
   val = parseInt(val);
 
   if (val === 1 || val === 7) {
     container.innerHTML = `
-      <label class="form-label small fw-bold">Jam Jam Berapa?</label>
+      <label class="form-label small fw-bold">Jam Berapa?</label>
       <input type="time" id="valJam" class="form-control form-control-sm" value="${val === 1 ? '05:00' : '21:00'}" required>
     `;
   } else if (val === 2) {
     container.innerHTML = `
       <label class="form-label small fw-bold mb-2">Ceklis Sholat yang Dilaksanakan:</label>
-      <div class="d-flex flex-wrap gap-2">
+      <div class="d-flex flex-wrap gap-3">
         <div class="form-check"><input class="form-check-input" type="checkbox" id="sh_subuh"><label class="form-check-label small">Subuh</label></div>
         <div class="form-check"><input class="form-check-input" type="checkbox" id="sh_dzuhur"><label class="form-check-label small">Dzuhur</label></div>
         <div class="form-check"><input class="form-check-input" type="checkbox" id="sh_ashar"><label class="form-check-label small">Ashar</label></div>
@@ -157,9 +197,16 @@ async function simpanJurnalSiswa(e) {
   try {
     await setDoc(doc(db, "log_kebiasaan", docId), payload);
     alert("Jurnal kebiasaan berhasil ditambahkan!");
-    bootstrap.Modal.getInstance(document.getElementById("modalTambahJurnal")).hide();
+    
+    // Tutup Modal
+    const modalInstance = bootstrap.Modal.getInstance(document.getElementById("modalTambahJurnal"));
+    if (modalInstance) modalInstance.hide();
+
+    // Reset Form
     document.getElementById("formTambahJurnal").reset();
     document.getElementById("fieldDetailJurnal").innerHTML = `<p class="text-muted small mb-0">Silahkan pilih jenis kebiasaan terlebih dahulu.</p>`;
+    
+    // Reload data tabel
     loadRiwayatSiswa();
   } catch (err) {
     alert("Gagal menyimpan data: " + err.message);
