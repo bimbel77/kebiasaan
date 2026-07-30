@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// Konfigurasi Firebase Proyek Anda
+// Konfigurasi Firebase Proyek
 const firebaseConfig = {
   apiKey: "AIzaSyCODPfjAf4gvjQ4OG1HkzSpWOnNzZH13bA",
   authDomain: "kebiasaan-indonesia-heba-2a3d7.firebaseapp.com",
