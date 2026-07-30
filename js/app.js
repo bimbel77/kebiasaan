@@ -1,5 +1,5 @@
 import { db } from './firebase-config.js';
-import { collection, addDoc, getDocs, query, where, orderBy, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 let currentUser = null;
 
@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // 1. OPSI ADMIN (Akun Standar Master)
                 if (role === 'admin') {
-                    if (username === 'admin' && password === '123456') { // Ganti password admin standar di sini jika perlu
+                    if (username === 'admin' && password === '123456') {
                         userValid = true;
                         userData = { name: "Administrator", id: "admin_master" };
                     } else {
@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const data = querySnapshot.docs[0].data();
                         userData = { name: data.nama, id: querySnapshot.docs[0].id };
                     } else {
-                        alert("Akun Guru tidak ditemukan atau Password salah! Pastikan NIP/Username dan Password sesuai inputan Admin.");
+                        alert("Akun Guru tidak ditemukan atau Password salah!");
                     }
                 } 
                 // 3. OPSI SISWA (Cek Database Firebase)
@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const data = querySnapshot.docs[0].data();
                         userData = { name: data.nama, id: querySnapshot.docs[0].id, kelas: data.kelas };
                     } else {
-                        alert("Akun Siswa tidak ditemukan atau Password salah! Pastikan NISN dan Password sesuai data dari Guru/Admin.");
+                        alert("Akun Siswa tidak ditemukan atau Password salah!");
                     }
                 }
 
@@ -116,60 +116,90 @@ document.addEventListener('DOMContentLoaded', () => {
         btnToggle.addEventListener('click', () => {
             const sidebar = document.getElementById('sidebar');
             if (sidebar) {
-                sidebar.style.display = (sidebar.style.display === 'none' || sidebar.style.display === '') ? 'flex' : 'none';
+                sidebar.classList.toggle('active');
+                if (sidebar.style.display === 'none' || sidebar.style.display === '') {
+                    sidebar.style.display = 'flex';
+                } else {
+                    sidebar.style.display = 'none';
+                }
             }
         });
     }
 });
 
 // ==========================================
-// FUNGSI PENDUKUNG AGAR SISTEM LOGIN TIDAK ERROR
+// FUNGSI PENDUKUNG NAVIGASI & RENDER HALAMAN
 // ==========================================
 
-// 1. Fungsi Render Menu Sidebar berdasarkan Role User
 function renderSidebarMenu() {
-    const navMenu = document.getElementById('navMenu') || document.getElementById('sidebarMenu') || document.querySelector('.sidebar nav');
+    const navMenu = document.getElementById('navMenu');
     if (!navMenu || !currentUser) return;
 
     let menuHTML = `
-        <a href="#" onclick="loadPage('dashboard')" class="menu-item"> Dashboard</a>
+        <a href="javascript:void(0)" onclick="window.loadPage('dashboard')" class="nav-item active" id="menu-dashboard">
+            <i class="fa-solid fa-chart-line"></i> Dashboard
+        </a>
     `;
 
     if (currentUser.role === 'admin') {
         menuHTML += `
-            <a href="#" onclick="loadPage('kelola-guru')" class="menu-item"> Data Guru</a>
-            <a href="#" onclick="loadPage('kelola-siswa')" class="menu-item"> Data Siswa</a>
-            <a href="#" onclick="loadPage('pengaturan')" class="menu-item"> Pengaturan</a>
+            <a href="javascript:void(0)" onclick="window.loadPage('kelola-guru')" class="nav-item" id="menu-kelola-guru">
+                <i class="fa-solid fa-chalkboard-user"></i> Data Guru
+            </a>
+            <a href="javascript:void(0)" onclick="window.loadPage('kelola-siswa')" class="nav-item" id="menu-kelola-siswa">
+                <i class="fa-solid fa-users"></i> Data Siswa
+            </a>
+            <a href="javascript:void(0)" onclick="window.loadPage('pengaturan')" class="nav-item" id="menu-pengaturan">
+                <i class="fa-solid fa-gear"></i> Pengaturan
+            </a>
         `;
     } else if (currentUser.role === 'guru') {
         menuHTML += `
-            <a href="#" onclick="loadPage('materi')" class="menu-item"> Kelola Kebiasaan/Materi</a>
-            <a href="#" onclick="loadPage('rekap-siswa')" class="menu-item"> Rekapitulasi Siswa</a>
+            <a href="javascript:void(0)" onclick="window.loadPage('materi')" class="nav-item" id="menu-materi">
+                <i class="fa-solid fa-book-open"></i> Kelola Kebiasaan
+            </a>
+            <a href="javascript:void(0)" onclick="window.loadPage('rekap-siswa')" class="nav-item" id="menu-rekap-siswa">
+                <i class="fa-solid fa-clipboard-list"></i> Rekapitulasi Siswa
+            </a>
         `;
     } else if (currentUser.role === 'siswa') {
         menuHTML += `
-            <a href="#" onclick="loadPage('kebiasaan')" class="menu-item"> Kebiasaan Saya</a>
-            <a href="#" onclick="loadPage('profil')" class="menu-item"> Profil Saya</a>
+            <a href="javascript:void(0)" onclick="window.loadPage('kebiasaan')" class="nav-item" id="menu-kebiasaan">
+                <i class="fa-solid fa-star"></i> Kebiasaan Saya
+            </a>
+            <a href="javascript:void(0)" onclick="window.loadPage('profil')" class="nav-item" id="menu-profil">
+                <i class="fa-solid fa-user"></i> Profil Saya
+            </a>
         `;
     }
 
     navMenu.innerHTML = menuHTML;
 }
 
-// 2. Fungsi Load Page (Sederhana untuk menampilkan konten halaman)
 function loadPage(pageName) {
-    console.log(`Memuat halaman: ${pageName}`);
-    const mainContent = document.getElementById('mainContent') || document.querySelector('.main-content');
-    if (!mainContent) return;
+    const contentBody = document.getElementById('contentBody');
+    const pageTitle = document.getElementById('pageTitle');
+    if (!contentBody || !currentUser) return;
 
-    // Menampilkan pesan sederhana di area konten utama
-    mainContent.innerHTML = `
-        <div style="padding: 20px;">
-            <h2>Halaman ${pageName.toUpperCase().replace('-', ' ')}</h2>
-            <p>Selamat datang, <strong>${currentUser ? currentUser.name : 'Pengguna'}</strong>!</p>
+    // Update kelas active di menu
+    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+    const activeMenu = document.getElementById(`menu-${pageName}`);
+    if (activeMenu) activeMenu.classList.add('active');
+
+    // Ubah judul halaman
+    const formattedTitle = pageName.replace('-', ' ').toUpperCase();
+    if (pageTitle) pageTitle.innerText = formattedTitle;
+
+    // Konten dinamis per halaman
+    contentBody.innerHTML = `
+        <div class="card">
+            <h3>Selamat Datang di Halaman ${formattedTitle}</h3>
+            <p style="margin-top: 10px; color: #707ebe;">
+                Halo, <strong>${currentUser.name}</strong> (${currentUser.role.toUpperCase()}). Layanan siap digunakan.
+            </p>
         </div>
     `;
 }
 
-// Menjadikan fungsi loadPage global agar bisa dipanggil langsung via atribut onclick di HTML
+// Mengekspos fungsi loadPage ke global window agar bisa diakses via onclick HTML
 window.loadPage = loadPage;
