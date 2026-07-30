@@ -115,7 +115,61 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnToggle) {
         btnToggle.addEventListener('click', () => {
             const sidebar = document.getElementById('sidebar');
-            sidebar.style.display = (sidebar.style.display === 'none' || sidebar.style.display === '') ? 'flex' : 'none';
+            if (sidebar) {
+                sidebar.style.display = (sidebar.style.display === 'none' || sidebar.style.display === '') ? 'flex' : 'none';
+            }
         });
     }
 });
+
+// ==========================================
+// FUNGSI PENDUKUNG AGAR SISTEM LOGIN TIDAK ERROR
+// ==========================================
+
+// 1. Fungsi Render Menu Sidebar berdasarkan Role User
+function renderSidebarMenu() {
+    const navMenu = document.getElementById('navMenu') || document.getElementById('sidebarMenu') || document.querySelector('.sidebar nav');
+    if (!navMenu || !currentUser) return;
+
+    let menuHTML = `
+        <a href="#" onclick="loadPage('dashboard')" class="menu-item"> Dashboard</a>
+    `;
+
+    if (currentUser.role === 'admin') {
+        menuHTML += `
+            <a href="#" onclick="loadPage('kelola-guru')" class="menu-item"> Data Guru</a>
+            <a href="#" onclick="loadPage('kelola-siswa')" class="menu-item"> Data Siswa</a>
+            <a href="#" onclick="loadPage('pengaturan')" class="menu-item"> Pengaturan</a>
+        `;
+    } else if (currentUser.role === 'guru') {
+        menuHTML += `
+            <a href="#" onclick="loadPage('materi')" class="menu-item"> Kelola Kebiasaan/Materi</a>
+            <a href="#" onclick="loadPage('rekap-siswa')" class="menu-item"> Rekapitulasi Siswa</a>
+        `;
+    } else if (currentUser.role === 'siswa') {
+        menuHTML += `
+            <a href="#" onclick="loadPage('kebiasaan')" class="menu-item"> Kebiasaan Saya</a>
+            <a href="#" onclick="loadPage('profil')" class="menu-item"> Profil Saya</a>
+        `;
+    }
+
+    navMenu.innerHTML = menuHTML;
+}
+
+// 2. Fungsi Load Page (Sederhana untuk menampilkan konten halaman)
+function loadPage(pageName) {
+    console.log(`Memuat halaman: ${pageName}`);
+    const mainContent = document.getElementById('mainContent') || document.querySelector('.main-content');
+    if (!mainContent) return;
+
+    // Menampilkan pesan sederhana di area konten utama
+    mainContent.innerHTML = `
+        <div style="padding: 20px;">
+            <h2>Halaman ${pageName.toUpperCase().replace('-', ' ')}</h2>
+            <p>Selamat datang, <strong>${currentUser ? currentUser.name : 'Pengguna'}</strong>!</p>
+        </div>
+    `;
+}
+
+// Menjadikan fungsi loadPage global agar bisa dipanggil langsung via atribut onclick di HTML
+window.loadPage = loadPage;
