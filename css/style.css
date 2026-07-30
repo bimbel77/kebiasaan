@@ -63,6 +63,7 @@ body {
     display: flex;
     flex-direction: column;
     padding: 20px;
+    transition: all 0.3s ease;
 }
 
 .brand {
@@ -125,6 +126,11 @@ body {
     border-radius: 8px;
     cursor: pointer;
     font-weight: bold;
+    transition: 0.2s;
+}
+
+.btn-logout:hover {
+    background: #ffd5d5;
 }
 
 /* Content Area */
@@ -169,6 +175,11 @@ body {
     border: 1px solid #e0e5f2;
     border-radius: 8px;
     outline: none;
+    transition: border 0.2s;
+}
+
+.form-group input:focus, .form-group select:focus {
+    border-color: #4318ff;
 }
 
 .btn-primary {
@@ -179,6 +190,11 @@ body {
     border-radius: 8px;
     cursor: pointer;
     font-weight: 600;
+    transition: background 0.2s;
+}
+
+.btn-primary:hover {
+    background: #3311cc;
 }
 
 .checkbox-group {
